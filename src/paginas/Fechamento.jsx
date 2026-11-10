@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { sb, rpcAll, iso, R0, R, N, P, soma, agrupar, COR_SETOR, COR_CANAL, FERIADOS } from '../lib'
+import { sb, rpcAll, iso, R0, R, N, P, soma, agrupar, COR_SETOR, COR_CANAL, FERIADOS, ordenarSetores } from '../lib'
 import { useDados, Estado, Card, Tabela, Kpi, Aviso } from '../ui'
 
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
@@ -42,7 +42,7 @@ function montar(d, mes) {
   const at = k(d.dia), an = k(d.diaAnt)
   const canais = agrupar(d.dia, 'canal', ['valor_total']).sort((x, y) => y.valor_total - x.valor_total)
   const turnos = agrupar(d.turno, 'turno', ['valor_total', 'vendas'])
-  const setores = ['Cozinha', 'Sushi bar', 'Copa'].map((s) => ({ s, qtd: soma(d.setor.filter((r) => r.setor === s), 'qtd'), valor: soma(d.setor.filter((r) => r.setor === s), 'valor') }))
+  const setores = ordenarSetores(d.setor.map((r) => r.setor)).map((s) => ({ s, qtd: soma(d.setor.filter((r) => r.setor === s), 'qtd'), valor: soma(d.setor.filter((r) => r.setor === s), 'valor') }))
   const fatItens = soma(d.cmvt, 'faturamento'), fatFicha = soma(d.cmvt, 'faturamento_com_ficha'), custoT = soma(d.cmvt, 'custo_teorico')
   const fatBeb = soma(d.rank.filter((r) => String(r.grupo || '').includes('BEBIDA')), 'valor')
   const fatAli = soma(d.rank, 'valor') - fatBeb

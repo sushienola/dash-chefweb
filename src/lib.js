@@ -88,7 +88,9 @@ export function agrupar(arr, chave, campos) {
 
 export const CORES = ['#8e5bd6', '#e8743b', '#3d8f5f', '#d9a43a', '#c06c9b', '#5b7fc7', '#b7a3e6', '#a08670', '#c94a3d', '#7aa15a']
 export const COR_CANAL = { Loja: '#b99be8', iFood: '#e8743b', Site: '#3d8f5f', Rappi: '#d9a43a', 'Rappi + 99': '#d9a43a', Outro: '#a08670' }
-export const COR_SETOR = { Cozinha: '#e8743b', 'Sushi bar': '#b99be8', Copa: '#3d8f5f' }
+export const COR_SETOR = { Cozinha: '#e8743b', 'Sushi bar': '#b99be8', Copa: '#3d8f5f', Bar: '#5b7fc7', Delivery: '#d9a43a' }
+const ORDEM_SETOR = ['Cozinha', 'Sushi bar', 'Copa', 'Bar', 'Delivery']
+export const ordenarSetores = (lista) => [...new Set(lista)].sort((a, b) => ORDEM_SETOR.indexOf(a) - ORDEM_SETOR.indexOf(b))
 export const COR_TURNO = { 'Almoço': '#f0b860', Jantar: '#8e5bd6', 'Sem horário': '#cbbfae' }
 export const COR_GRADE = 'rgba(120, 84, 40, 0.10)'
 

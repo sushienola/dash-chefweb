@@ -299,7 +299,7 @@ main { flex: 1; min-width: 0; padding: 8px 6px 40px; }
 .cel-barras { height: 104px; border-radius: 16px; background: #f4efe8; display: flex; align-items: flex-end; overflow: hidden; margin-bottom: 10px; }
 .cel-barras div { width: 100%; background: linear-gradient(180deg, #f6c35a, #e8743b); border-radius: 16px 16px 0 0; }
 .cel-dia-v { font-family: var(--serif); font-size: 21px; color: var(--tinta); margin: 4px 0 2px; }
-.cel-setores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.cel-setores { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
 .cel-setor { background: #fff; border-radius: 16px; padding: 12px; box-shadow: 0 4px 14px rgba(60,40,10,.05); border-top: 3px solid var(--cor); }
 .cel-setor .olho { color: var(--cor); }
 .cel-noticia { display: flex; justify-content: space-between; gap: 14px; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0ebe3; cursor: pointer; }

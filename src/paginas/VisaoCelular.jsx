@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { rpcAll, R0, N, br, brCurto, addDays, diffDays, soma, agrupar, parseIso, iso, COR_SETOR, COR_CANAL, FERIADOS, mediana } from '../lib'
+import { rpcAll, R0, N, br, brCurto, addDays, diffDays, soma, agrupar, parseIso, iso, COR_SETOR, COR_CANAL, FERIADOS, mediana, ordenarSetores } from '../lib'
 import { useDados, Estado } from '../ui'
 
 const NOME_DIA = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
@@ -85,7 +85,7 @@ export default function VisaoCelular({ loja, ini, fim, irPara }) {
     const diasMes = [...mm.values()].sort((x, y) => x.dia.localeCompare(y.dia)).map((d) => d.fat)
     const fatMes = soma(mes, 'valor_total'), fatMesAnt = soma(mesAnt, 'valor_total')
     const canais = agrupar(dia, 'canal', ['valor_total']).sort((a, b) => b.valor_total - a.valor_total)
-    const setores = ['Cozinha', 'Sushi bar', 'Copa'].map((s) => ({ s, qtd: soma(setor.filter((r) => r.setor === s), 'qtd'), valor: soma(setor.filter((r) => r.setor === s), 'valor') }))
+    const setores = ordenarSetores(setor.map((r) => r.setor)).map((s) => ({ s, qtd: soma(setor.filter((r) => r.setor === s), 'qtd'), valor: soma(setor.filter((r) => r.setor === s), 'valor') }))
     return {
       hoje, referencia, nRef, d14, at, an, fatMes, fatMesAnt, diasMes, iniMes,
       canais, totCanais: soma(canais, 'valor_total'), setores, top: itens.slice(0, 6),
