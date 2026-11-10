@@ -26,74 +26,20 @@ const PAGINAS = [
 ]
 
 export default function App() {
-  const [sessao, setSessao] = useState(undefined)
-  useEffect(() => {
-    sb.auth.getSession().then(({ data }) => setSessao(data.session))
-    const { data } = sb.auth.onAuthStateChange((_e, s) => setSessao(s))
-    return () => data.subscription.unsubscribe()
-  }, [])
-  if (sessao === undefined) return <div className="carregando tela">Carregando…</div>
-  if (!sessao) return <Login />
-  return <Painel email={sessao.user.email} />
+  return <Painel />
 }
 
-function Login() {
-  const [modo, setModo] = useState('entrar')
-  const [email, setEmail] = useState('')
-  const [senha, setSenha] = useState('')
-  const [msg, setMsg] = useState(null)
-  const [ocupado, setOcupado] = useState(false)
-
-  async function enviar(e) {
-    e.preventDefault()
-    setOcupado(true); setMsg(null)
-    const r = modo === 'entrar'
-      ? await sb.auth.signInWithPassword({ email, password: senha })
-      : await sb.auth.signUp({ email, password: senha, options: { emailRedirectTo: window.location.origin } })
-    setOcupado(false)
-    if (r.error) return setMsg({ erro: true, t: traduzir(r.error.message) })
-    if (modo === 'criar' && !r.data.session)
-      setMsg({ t: 'Conta criada! Confirme pelo link que chegou no seu e-mail e depois entre aqui.' })
-  }
-
-  return (
-    <div className="login">
-      <form onSubmit={enviar} className="login-box">
-        <div className="marca" style={{ padding: 0 }}><img className="logo" src="/favicon.svg" alt="" />Dash ChefWeb</div>
-        <h1>{modo === 'entrar' ? <>Bem-<em>vinda</em></> : <>Primeiro <em>acesso</em></>}</h1>
-        <p className="muted">{modo === 'entrar' ? 'Entre com seu e-mail e senha.' : 'Crie sua senha (mínimo 6 caracteres).'}</p>
-        <input type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <input type="password" placeholder="Senha" value={senha} onChange={(e) => setSenha(e.target.value)} required minLength={6} />
-        <button className="btn prim" disabled={ocupado}>{ocupado ? 'Aguarde…' : modo === 'entrar' ? 'Entrar' : 'Criar conta'}</button>
-        {msg && <div className={'aviso ' + (msg.erro ? 'erro' : 'ok')}>{msg.t}</div>}
-        <button type="button" className="link" onClick={() => { setModo(modo === 'entrar' ? 'criar' : 'entrar'); setMsg(null) }}>
-          {modo === 'entrar' ? 'Primeiro acesso? Criar conta' : 'Já tenho conta'}
-        </button>
-      </form>
-    </div>
-  )
-}
-
-function traduzir(m) {
-  if (/Invalid login/i.test(m)) return 'E-mail ou senha incorretos.'
-  if (/Email not confirmed/i.test(m)) return 'Confirme o e-mail pelo link que enviamos antes de entrar.'
-  if (/already registered/i.test(m)) return 'Esse e-mail já tem conta. Use "Já tenho conta".'
-  return m
-}
-
-function Painel({ email }) {
+function Painel() {
   const [pag, setPag] = useState(() => localStorage.getItem('pag') || 'visao')
   const [lojas, setLojas] = useState([])
   const [loja, setLoja] = useState(() => Number(localStorage.getItem('loja')) || 1)
-  const [ultimo, setUltimo] = useState(null)
+  const [ultimo, setUltimo] = useState(undefined)
   const [primeiro, setPrimeiro] = useState(null)
   const [periodo, setPeriodo] = useState(null)
-  const [permitido, setPermitido] = useState(null)
   const [menuAberto, setMenuAberto] = useState(false)
   const cel = useCelular()
 
   useEffect(() => {
-    sb.rpc('is_staff').then(({ data }) => setPermitido(!!data))
     sb.from('lojas').select('*').order('id').then(({ data }) => setLojas(data || []))
   }, [])
 
@@ -109,16 +55,6 @@ function Painel({ email }) {
       setPeriodo({ id: '30d', ini: p.ini, fim: p.fim })
     })
   }, [loja])
-
-  if (permitido === false)
-    return (
-      <div className="login"><div className="login-box">
-        <div className="marca" style={{ padding: 0 }}><img className="logo" src="/favicon.svg" alt="" />Dash ChefWeb</div>
-        <p>O e-mail <b>{email}</b> ainda não tem acesso à dash.</p>
-        <p className="muted">Peça para a administração incluir seu e-mail na lista de usuários permitidos.</p>
-        <button className="btn" onClick={() => sb.auth.signOut()}>Sair</button>
-      </div></div>
-    )
 
   const P = PAGINAS.find((p) => p.id === pag) || PAGINAS[0]
   const lista = presets(ultimo)
@@ -140,12 +76,11 @@ function Painel({ email }) {
           ))}
         </nav>
         <div className="usuario">
-          <div className="avatar">{email.slice(0, 2).toUpperCase()}</div>
+          <div className="avatar">{((lojas.find((l) => l.id === loja) || {}).nome || '··').slice(0, 2)}</div>
           <div className="info">
             <div style={{ fontWeight: 600, fontSize: 13 }}>{(lojas.find((l) => l.id === loja) || {}).nome || ''}</div>
-            <div className="muted pequeno">{email}</div>
+            <div className="muted pequeno">Dash ChefWeb</div>
           </div>
-          <button className="link" onClick={() => sb.auth.signOut()} title="Sair">Sair</button>
         </div>
       </aside>
 
@@ -187,7 +122,7 @@ function Painel({ email }) {
             Dados de vendas de {br(primeiro)} a {br(ultimo)} · dia de operação (o caixa da noite conta para o dia em que abriu)
           </div>
         )}
-        {!P.semPeriodo && !ultimo && permitido && (
+        {!P.semPeriodo && ultimo === null && (
           <div className="hero" style={{ minHeight: 0, marginTop: 12 }}>
             <div className="selo"><span>Primeiro passo</span></div>
             <h2>Ainda não há <em>vendas</em> desta loja</h2>
