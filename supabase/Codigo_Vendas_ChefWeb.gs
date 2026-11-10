@@ -35,6 +35,26 @@ var CONFIG = {
   horaSync:      8,     // horário do sync automático
 };
 
+// ── LOJAS ──
+// Cada loja tem o seu serial e código na TOTVS. Para ligar a Nola, preencha serialLoja e codigoLoja
+// (e usuario/senha, se o login da Nola for diferente). Loja com serial vazio é ignorada.
+var LOJAS = [
+  { lojaDash: 1, nome: "SUSHI LEBLON", serialLoja: "96736989", codigoLoja: "1" },
+  { lojaDash: 2, nome: "NOLA",         serialLoja: "",         codigoLoja: "", usuario: "", senha: "" },
+];
+
+function _lojasAtivas() { return LOJAS.filter(function(l) { return String(l.serialLoja || "").trim() !== ""; }); }
+
+var _PADRAO = null;
+function _usarLoja(l) {
+  if (!_PADRAO) _PADRAO = { usuario: CONFIG.usuario, senha: CONFIG.senha };
+  CONFIG.lojaDash = l.lojaDash;
+  CONFIG.serialLoja = String(l.serialLoja);
+  CONFIG.codigoLoja = String(l.codigoLoja || "1");
+  CONFIG.usuario = l.usuario || _PADRAO.usuario;
+  CONFIG.senha = l.senha || _PADRAO.senha;
+}
+
 // ─────────────────────────────────────────────
 //  MENU
 // ─────────────────────────────────────────────
@@ -93,12 +113,11 @@ function desativarSyncDiario(silencioso) {
 
 function syncDiarioAutomatico() {
   try { Logger.log(_sincronizarContasPagar().texto); } catch (e) { Logger.log("Contas a pagar: " + e.message); }
-  try {
-    Logger.log(_buscarUltimos(CONFIG.diasSync).texto);
-  } catch (e) {
-    Logger.log("❌ Sync: " + e.message);
-    _registrar("api-erro", e.message.substring(0, 500), 0);
-    throw e; // faz o Google mandar e-mail de falha
+  var r = _buscarUltimos(CONFIG.diasSync);
+  Logger.log(r.texto);
+  if (r.texto.indexOf("❌") >= 0) {
+    _registrar("api-erro", r.texto.substring(0, 500), 0);
+    throw new Error(r.texto); // faz o Google mandar e-mail de falha
   }
 }
 
@@ -112,6 +131,18 @@ function _buscarUltimos(n) {
 //  BUSCA PRINCIPAL
 // ─────────────────────────────────────────────
 function buscarPeriodo(dataInicio, dataFim) {
+  var textos = [];
+  _lojasAtivas().forEach(function(l) {
+    _usarLoja(l);
+    try { textos.push("— " + l.nome + " —\n" + _buscarPeriodoLoja(dataInicio, dataFim).texto); }
+    catch (e) { textos.push("— " + l.nome + " —\n❌ " + e.message); }
+  });
+  var texto = textos.join("\n\n");
+  if (texto.indexOf("❌") >= 0) Logger.log(texto);
+  return { texto: texto };
+}
+
+function _buscarPeriodoLoja(dataInicio, dataFim) {
   var total = _diffDias(dataInicio, dataFim);
   if (total < 0) throw new Error("A data final é antes da inicial.");
 
@@ -324,6 +355,7 @@ function _txt(v) { return v === null || v === undefined || v === "" ? null : Str
 //  DIAGNÓSTICO: lista todos os campos que a API manda (aba "_Campos_API")
 // ─────────────────────────────────────────────
 function verCamposAPI() {
+  _usarLoja(_lojasAtivas()[0]);
   var ontem = new Date(); ontem.setDate(ontem.getDate() - 1);
   var vendas = _chamarAPI(_fmtData(ontem));
   if (!vendas.length) { _alerta("Nenhuma venda ontem para analisar."); return; }
@@ -384,6 +416,7 @@ var HIST = [
 ];
 
 function enviarHistorico() {
+  _usarLoja(LOJAS[0]);   // a planilha de histórico é do SUSHI LEBLON
   PropertiesService.getScriptProperties().setProperty("HIST_ESTADO", JSON.stringify({ t: 0, linha: 2, total: 0 }));
   _alerta("📤 Envio do histórico iniciado.\n\nEle roda em partes e continua sozinho a cada minuto.\n" +
     "Acompanhe na dash (tela Importar → Últimas importações) ou em Extensões → Apps Script → Execuções.\n" +
@@ -396,6 +429,7 @@ function _continuarHistorico() {
   var est = JSON.parse(props.getProperty("HIST_ESTADO") || "null");
   _apagarGatilho("_continuarHistorico");
   if (!est) return;
+  _usarLoja(LOJAS[0]);
   var inicio = Date.now(), ss = SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(props.getProperty("PLANILHA_ID"));
   props.setProperty("PLANILHA_ID", ss.getId());
   var tz = ss.getSpreadsheetTimeZone();
@@ -534,6 +568,15 @@ function buscarContasPagar() {
 }
 
 function _sincronizarContasPagar() {
+  var textos = [];
+  _lojasAtivas().forEach(function(l) {
+    _usarLoja(l);
+    textos.push(l.nome + ": " + _sincronizarContasPagarLoja().texto);
+  });
+  return { texto: textos.join("\n") };
+}
+
+function _sincronizarContasPagarLoja() {
   var hoje = new Date();
   var ini = new Date(hoje); ini.setDate(ini.getDate() - 120);
   var fim = new Date(hoje); fim.setDate(fim.getDate() + 120);

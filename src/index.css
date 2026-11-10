@@ -310,3 +310,14 @@ main { flex: 1; min-width: 0; padding: 8px 6px 40px; }
   font-family: var(--serif); font-size: 26px; color: #fff;
   background: linear-gradient(145deg, color-mix(in srgb, var(--cor) 70%, white), var(--cor));
 }
+
+/* fechamento */
+.fech-cab h2 { font-size: 44px; margin: 4px 0 6px; font-weight: 400; }
+.fechamento { display: flex; flex-direction: column; gap: 18px; }
+.kpi-t .tag, h3 .tag, th .tag { font-family: var(--sans); font-size: 10.5px; padding: 1px 7px; vertical-align: middle; margin-left: 4px; }
+@media print {
+  .lateral, .tabbar, .filtros, .fech-acoes, .faixa, .veu, .aviso { display: none !important; }
+  html, body { background: #fff !important; }
+  .app { padding: 0; display: block; }
+  .card, .kpi { box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; }
+}

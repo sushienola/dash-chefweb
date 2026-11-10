@@ -123,7 +123,7 @@ export default function Itens({ loja, ini, fim }) {
               { k: 'valor', t: 'Valor', num: true, f: R0 },
               { k: 'pct', t: '% valor', num: true, f: P },
               { k: 'custo_unit', t: 'Custo ficha', num: true, f: (v) => (v == null ? '—' : R(v)) },
-              { k: 'cmv', t: 'CMV teórico', num: true, f: P },
+              { k: 'cmv', t: <>CMV <span className="tag">teórico</span></>, num: true, f: P },
             ]} linhas={calc.linhas} max={400} />
           </Card>
         </>

@@ -49,8 +49,8 @@ function Teorico({ loja, ini, fim }) {
             Calculado só sobre os produtos que têm ficha.
           </Aviso>
           <div className="kpis">
-            <Kpi titulo="CMV teórico" valor={P(calc.fatF ? calc.custo / calc.fatF : null)} sub="sobre itens com ficha" />
-            <Kpi titulo="Custo teórico" valor={R0(calc.custo)} />
+            <Kpi titulo={<>CMV <span className="tag">teórico</span></>} valor={P(calc.fatF ? calc.custo / calc.fatF : null)} sub="sobre itens com ficha" />
+            <Kpi titulo={<>Custo <span className="tag">teórico</span></>} valor={R0(calc.custo)} />
             <Kpi titulo="Faturamento com ficha" valor={R0(calc.fatF)} sub={P(calc.cobertura) + ' do total'} />
             <Kpi titulo="Faturamento sem ficha" valor={R0(calc.fat - calc.fatF)} sub={calc.sem.length + ' produtos'} />
           </div>
