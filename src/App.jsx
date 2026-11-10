@@ -40,9 +40,12 @@ function Painel() {
   const [periodo, setPeriodo] = useState(null)
   const [menuAberto, setMenuAberto] = useState(false)
   const cel = useCelular()
+  const [temContas, setTemContas] = useState(false)
 
   useEffect(() => {
     sb.from('lojas').select('*').order('id').then(({ data }) => setLojas(data || []))
+    // contas a pagar só aparece no menu quando a TOTVS liberar a API e houver dados
+    sb.from('contas_pagar').select('numero_controle', { count: 'exact', head: true }).then(({ count }) => setTemContas((count || 0) > 0))
   }, [])
 
   useEffect(() => {
@@ -69,7 +72,7 @@ function Painel() {
           {['Principal', 'Custos', 'Cadastros'].map((sec) => (
             <div key={sec} style={{ display: 'contents' }}>
               <div className="nav-sec">{sec}</div>
-              {PAGINAS.filter((p) => p.sec === sec).map((p) => (
+              {PAGINAS.filter((p) => p.sec === sec && (p.id !== 'contas' || temContas)).map((p) => (
                 <button key={p.id} className={pag === p.id ? 'on' : ''} onClick={() => { setPag(p.id); setMenuAberto(false) }}>
                   <span className="ico">{p.ico}</span>{p.nome}
                 </button>
