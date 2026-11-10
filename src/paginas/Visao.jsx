@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
-import { rpcAll, R, R0, N, P, kR, br, brCurto, diaSemana, addDays, diffDays, soma, agrupar, COR_CANAL, COR_GRADE, parseIso } from '../lib'
+import { rpcAll, R, R0, N, P, kR, br, brCurto, diaSemana, addDays, diffDays, soma, agrupar, COR_CANAL, COR_GRADE, COR_SETOR, parseIso } from '../lib'
 import { useDados, Estado, Kpi, Card, Tabela, tooltipStyle } from '../ui'
 
 const NOME_DIA = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
@@ -151,7 +151,7 @@ export default function Visao({ loja, ini, fim }) {
             <Tabela colunas={[
               { k: 'produto', t: 'Produto', f: (v) => <b style={{ fontWeight: 600 }}>{v}</b> },
               { k: 'subgrupo', t: 'Subgrupo', f: (v) => <span className="muted">{v}</span> },
-              { k: 'cozinha', t: 'Cozinha', f: (v) => (v ? <span className="tag laranja">Cozinha</span> : '') },
+              { k: 'setor', t: 'Setor', f: (v) => <span className="tag" style={{ background: (COR_SETOR[v] || '#aaa') + '2e', color: '#2a2118' }}>{v}</span> },
               { k: 'qtd', t: 'Qtd', num: true, f: N },
               { k: 'valor', t: 'Valor', num: true, f: R0 },
             ]} linhas={calc.top} />

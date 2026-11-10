@@ -44,6 +44,10 @@ export default function Equipe({ loja, ini, fim }) {
             )}
           </Card>
           <Card titulo="Operadores de caixa (quem fechou a conta)">
+            <Aviso>
+              Esta lista é de quem <b>fechou</b> a conta no caixa. Quem <b>lançou</b> cada item (o garçom) aparece no quadro acima,
+              assim que a TOTVS mandar essa informação pelo sync diário.
+            </Aviso>
             <Tabela colunas={[
               { k: 'operador', t: 'Operador' },
               { k: 'vendas', t: 'Vendas fechadas', num: true, f: N },

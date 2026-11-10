@@ -66,6 +66,12 @@ export default function Pagamentos({ loja, ini, fim }) {
               </BarChart>
             </ResponsiveContainer>
           </Card>
+          {(visao === 'maquininha' || visao === 'bandeira' || visao === 'bandtipo') && (
+            <Aviso>
+              <b>Não identificada</b> = o nome da forma de pagamento no ChefWeb não diz a {visao === 'maquininha' ? 'maquininha' : 'bandeira'}.
+              Ex.: "MASTERCARD" e "VISA" (sem GETNET/BRB no nome) e "PIX". Para separar, renomeie essas formas no ChefWeb incluindo a maquininha.
+            </Aviso>
+          )}
           <Card titulo="Resumo">
             <Tabela colunas={[
               { k: 'chave', t: 'Item' },
