@@ -70,6 +70,7 @@ function onOpen() {
     .addItem("📤 Enviar histórico da planilha para a dash", "enviarHistorico")
     .addItem("💰 Buscar contas a pagar agora", "buscarContasPagar")
     .addItem("🔍 Ver campos que a API manda", "verCamposAPI")
+    .addItem("🧪 Testar outros endpoints da TOTVS", "explorarAPI")
     .addToUi();
 }
 
@@ -635,4 +636,54 @@ function _mapearContaPagar(c) {
     codigo_barras: t(c.CodigoBarras), compra: b(c.Compra), investimento: b(c.Investimento), frete: b(c.Frete),
     deletado: b(c.Deletado),
   };
+}
+
+
+// ═════════════════════════════════════════════════════════════
+//  EXPLORAR: testa endpoints POST da TOTVS com alguns formatos de pedido
+//  e grava o que cada um respondeu na aba "_Explorar_API".
+// ═════════════════════════════════════════════════════════════
+function explorarAPI() {
+  _usarLoja(_lojasAtivas()[0]);
+  var d1 = new Date(); d1.setDate(d1.getDate() - 2);
+  var d2 = new Date(); d2.setDate(d2.getDate() - 1);
+  var ini = _fmtData(d1), fim = _fmtData(d2);
+  var endpoints = [
+    "/api/ProvisaoCartoes/ObterProvisaoCartoes",
+    "/api/FechamentoCaixa/ObterFechamentoCaixa",
+    "/api/sangria/Listar",
+    "/api/Integracao/ObterIntegracao",
+    "/api/CapaVenda/ListPorDataMovimento",
+    "/api/Vendas/ObterVendasNFCe",
+  ];
+  var corpos = [
+    function(t) { return { Token: t, CodigoLoja: CONFIG.codigoLoja, DataInicial: ini + "T00:00:00", DataFinal: fim + "T23:59:59" }; },
+    function(t) { return { Token: t, CodigoLoja: CONFIG.codigoLoja, DataInicio: ini + "T00:00:00", DataFim: fim + "T23:59:59" }; },
+    function(t) { return { Token: t, CodigoLoja: CONFIG.codigoLoja, DataMovimentoInicial: ini + "T00:00:00", DataMovimentoFinal: fim + "T23:59:59" }; },
+    function(t) { return { Token: t, CodigoLoja: CONFIG.codigoLoja, DataMovimento: fim + "T00:00:00" }; },
+  ];
+  var linhas = [["Endpoint", "Formato", "HTTP", "Sucesso", "Erro / campos", "Resposta (início)"]];
+  endpoints.forEach(function(ep) {
+    for (var i = 0; i < corpos.length; i++) {
+      var resp, txt, cod, json = null;
+      try {
+        resp = UrlFetchApp.fetch(CONFIG.urlServidor + ep, { method: "post", contentType: "application/json",
+          muteHttpExceptions: true, payload: JSON.stringify(corpos[i](_gerarToken())) });
+        cod = resp.getResponseCode(); txt = resp.getContentText();
+        try { json = JSON.parse(txt); } catch (e) {}
+      } catch (e) { cod = "-"; txt = e.message; }
+      var ok = json && (json.Sucesso === true || json.Success === true);
+      var erro = json && (json.Erros || json.Errors) && (json.Erros || json.Errors)[0] ? (json.Erros || json.Errors)[0].DescricaoErro : "";
+      var campos = json ? Object.keys(json).join(", ") : "";
+      linhas.push([ep, "formato " + (i + 1), cod, ok ? "SIM" : "não", erro || campos, String(txt).substring(0, 1500)]);
+      Utilities.sleep(800);
+      if (ok) break;   // achou um formato que funciona
+    }
+  });
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var aba = ss.getSheetByName("_Explorar_API") || ss.insertSheet("_Explorar_API");
+  aba.clear();
+  aba.getRange(1, 1, linhas.length, 6).setValues(linhas);
+  aba.setColumnWidth(6, 600);
+  _alerta("Pronto! Veja a aba _Explorar_API e me mande um print (ou baixe a aba).");
 }
