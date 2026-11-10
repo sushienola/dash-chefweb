@@ -48,6 +48,7 @@ function onOpen() {
     .addItem("🗑️ Desativar sync diário", "desativarSyncDiario")
     .addSeparator()
     .addItem("📤 Enviar histórico da planilha para a dash", "enviarHistorico")
+    .addItem("💰 Buscar contas a pagar agora", "buscarContasPagar")
     .addItem("🔍 Ver campos que a API manda", "verCamposAPI")
     .addToUi();
 }
@@ -91,6 +92,7 @@ function desativarSyncDiario(silencioso) {
 }
 
 function syncDiarioAutomatico() {
+  try { Logger.log(_sincronizarContasPagar().texto); } catch (e) { Logger.log("Contas a pagar: " + e.message); }
   try {
     Logger.log(_buscarUltimos(CONFIG.diasSync).texto);
   } catch (e) {
@@ -515,4 +517,79 @@ function _mapearHist(aba, o, tz) {
     loja: L, codigo_produto: int(o.CodigoProduto), codigo_insumo: int(o.CodigoInsumo), insumo: t(o.Insumo),
     qtd_por_unidade: num(o.QtdPorUnidade), un: t(o.Un), custo_unit: num(o.CustoUnitInsumo), custo_no_prato: num(o.CustoNoPrato) };
   return null;
+}
+
+
+// ═════════════════════════════════════════════════════════════
+//  CONTAS A PAGAR (TOTVS /api/Financeiro/ListContasPagar)
+//  Busca de 120 dias atrás até 120 dias à frente, em blocos de 30 dias,
+//  e atualiza no Supabase (pagas, em aberto, vencimentos).
+// ═════════════════════════════════════════════════════════════
+function buscarContasPagar() {
+  try {
+    _alerta("✅ Contas a pagar\n\n" + _sincronizarContasPagar().texto);
+  } catch (e) {
+    _alerta("❌ Contas a pagar — a TOTVS respondeu com erro:\n\n" + e.message);
+  }
+}
+
+function _sincronizarContasPagar() {
+  var hoje = new Date();
+  var ini = new Date(hoje); ini.setDate(ini.getDate() - 120);
+  var fim = new Date(hoje); fim.setDate(fim.getDate() + 120);
+  var total = 0, vistos = {};
+  for (var d = new Date(ini); d <= fim; d.setDate(d.getDate() + 30)) {
+    var a = _fmtData(d);
+    var b = new Date(d); b.setDate(b.getDate() + 29); if (b > fim) b = fim;
+    var lista = _contasPagarAPI(a, _fmtData(b));
+    var linhas = [];
+    lista.forEach(function(c) {
+      if (c.NumeroControle === null || c.NumeroControle === undefined || vistos[c.NumeroControle]) return;
+      vistos[c.NumeroControle] = true;
+      linhas.push(_mapearContaPagar(c));
+    });
+    for (var i = 0; i < linhas.length; i += 500) {
+      var resp = UrlFetchApp.fetch(CONFIG.supabaseUrl + "/rest/v1/rpc/ingerir_contas_pagar", {
+        method: "post", contentType: "application/json", muteHttpExceptions: true, headers: { apikey: CONFIG.supabaseChave },
+        payload: JSON.stringify({ p_token: CONFIG.tokenIntegracao, p_linhas: linhas.slice(i, i + 500) }),
+      });
+      if (resp.getResponseCode() >= 300) throw new Error("Supabase (contas a pagar): " + resp.getContentText().substring(0, 300));
+    }
+    total += linhas.length;
+    Utilities.sleep(1500);
+  }
+  _registrar("contas-pagar", _fmtData(ini) + " a " + _fmtData(fim), total);
+  return { texto: total + " contas atualizadas (" + _fmtData(ini) + " a " + _fmtData(fim) + ")." };
+}
+
+function _contasPagarAPI(ini, fim) {
+  var url = CONFIG.urlServidor + "/api/Financeiro/ListContasPagar" +
+    "?requisicao.token="       + encodeURIComponent(_gerarToken()) +
+    "&requisicao.codigoLoja="  + encodeURIComponent(CONFIG.codigoLoja) +
+    "&requisicao.dataInicial=" + encodeURIComponent(ini + "T00:00:00") +
+    "&requisicao.dataFinal="   + encodeURIComponent(fim + "T23:59:59");
+  var resp = UrlFetchApp.fetch(url, { method: "get", muteHttpExceptions: true });
+  var txt = resp.getContentText(), json;
+  try { json = JSON.parse(txt); } catch (e) { throw new Error("HTTP " + resp.getResponseCode() + ": " + txt.substring(0, 200)); }
+  if (!json.Sucesso) {
+    var msg = (json.Erros && json.Erros[0]) ? json.Erros[0].DescricaoErro : txt.substring(0, 200);
+    throw new Error(ini + " a " + fim + ": " + msg);
+  }
+  return json.ContasPagar || [];
+}
+
+function _mapearContaPagar(c) {
+  var d = function(v) { return v ? String(v).substring(0, 10) : null; };
+  var t = function(v) { return v === null || v === undefined || v === "" ? null : String(v).trim() || null; };
+  var b = function(v) { return v === null || v === undefined ? null : !!v; };
+  var n = function(v) { var x = Number(v); return v === null || v === undefined || isNaN(x) ? null : x; };
+  return {
+    loja: CONFIG.lojaDash, numero_controle: Number(c.NumeroControle), credor: t(c.Credor), cnpj: t(c.CNPJ),
+    valor: n(c.Valor), plano1: t(c.PlanoContas1), plano2: t(c.PlanoContas2), historico: t(c.Historico1),
+    pago: b(c.Pago), data_pagamento: d(c.DataPagamento), valor_pagamento: n(c.ValorPagamento), banco_pagamento: t(c.BancoPagamento),
+    data_vencimento: d(c.DataVencimento), data_emissao: d(c.DataEmissao), data_competencia: d(c.DataCompetencia),
+    data_registro: t(c.DataRegistro), data_atualizacao: t(c.DataAtualizacao), operador: t(c.Operador),
+    codigo_barras: t(c.CodigoBarras), compra: b(c.Compra), investimento: b(c.Investimento), frete: b(c.Frete),
+    deletado: b(c.Deletado),
+  };
 }
