@@ -40,7 +40,7 @@ var CONFIG = {
 // (e usuario/senha, se o login da Nola for diferente). Loja com serial vazio é ignorada.
 var LOJAS = [
   { lojaDash: 1, nome: "SUSHI LEBLON", serialLoja: "96736989", codigoLoja: "1" },
-  { lojaDash: 2, nome: "NOLA",         serialLoja: "",         codigoLoja: "", usuario: "", senha: "" },
+  { lojaDash: 2, nome: "NOLA",         serialLoja: "96736989", codigoLoja: "2" },
 ];
 
 function _lojasAtivas() { return LOJAS.filter(function(l) { return String(l.serialLoja || "").trim() !== ""; }); }
@@ -328,6 +328,9 @@ function _classificarPagto(desc, tipoCartao) {
 // Se a coluna de garçom vier vazia na dash, use "🔍 Ver campos que a API manda" e envie o resultado.
 function _garcomDe(obj) {
   if (!obj) return "";
+  // a TOTVS manda quem lançou o item dentro do produto (NomeOperador); "USUARIO MASTER" é o sistema
+  var op = obj.Produto && obj.Produto.NomeOperador ? String(obj.Produto.NomeOperador).trim() : "";
+  if (op && op.toUpperCase() !== "USUARIO MASTER") return op;
   var campos = ["Garcom", "Garçom", "Atendente", "Funcionario", "Vendedor", "Colaborador", "Garcons", "Atendentes"];
   for (var i = 0; i < campos.length; i++) {
     var v = obj[campos[i]];
@@ -651,16 +654,19 @@ function explorarAPI() {
   var endpoints = [
     "/api/ProvisaoCartoes/ObterProvisaoCartoes",
     "/api/FechamentoCaixa/ObterFechamentoCaixa",
-    "/api/sangria/Listar",
-    "/api/Integracao/ObterIntegracao",
-    "/api/CapaVenda/ListPorDataMovimento",
-    "/api/Vendas/ObterVendasNFCe",
   ];
+  var n = Number(CONFIG.codigoLoja);
+  var I = ini + "T00:00:00", F = fim + "T23:59:59";
   var corpos = [
-    function(t) { return { Token: t, CodigoLoja: CONFIG.codigoLoja, DataInicial: ini + "T00:00:00", DataFinal: fim + "T23:59:59" }; },
-    function(t) { return { Token: t, CodigoLoja: CONFIG.codigoLoja, DataInicio: ini + "T00:00:00", DataFim: fim + "T23:59:59" }; },
-    function(t) { return { Token: t, CodigoLoja: CONFIG.codigoLoja, DataMovimentoInicial: ini + "T00:00:00", DataMovimentoFinal: fim + "T23:59:59" }; },
-    function(t) { return { Token: t, CodigoLoja: CONFIG.codigoLoja, DataMovimento: fim + "T00:00:00" }; },
+    function(t) { return { Token: t, Lojas: [n], DataInicial: I, DataFinal: F }; },
+    function(t) { return { Token: t, CodigosLojas: [n], DataInicial: I, DataFinal: F }; },
+    function(t) { return { Token: t, CodigoLoja: n, DataInicial: I, DataFinal: F }; },
+    function(t) { return { Token: t, Lojas: [{ Codigo: n }], DataInicial: I, DataFinal: F }; },
+    function(t) { return { Token: t, Lojas: String(n), DataInicial: I, DataFinal: F }; },
+    function(t) { return { Token: t, CodigoLoja: [n], DataInicial: I, DataFinal: F }; },
+    function(t) { return { Token: t, Loja: n, DataInicial: I, DataFinal: F }; },
+    function(t) { return { Token: t, Lojas: [n], DataInicio: I, DataFim: F }; },
+    function(t) { return { Token: t, Lojas: [n], DataMovimentoInicial: I, DataMovimentoFinal: F }; },
   ];
   var linhas = [["Endpoint", "Formato", "HTTP", "Sucesso", "Erro / campos", "Resposta (início)"]];
   endpoints.forEach(function(ep) {
