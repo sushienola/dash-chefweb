@@ -117,3 +117,16 @@ export const tooltipStyle = {
   contentStyle: { borderRadius: 14, border: '1px solid rgba(120,84,40,.15)', fontSize: 12, background: '#fffaf2', boxShadow: '0 8px 24px rgba(80,50,10,.10)' },
   labelStyle: { fontWeight: 600 },
 }
+
+// true em telas de celular
+export function useCelular() {
+  const q = '(max-width: 860px)'
+  const [m, setM] = useState(() => typeof window !== 'undefined' && window.matchMedia(q).matches)
+  useEffect(() => {
+    const mm = window.matchMedia(q)
+    const f = () => setM(mm.matches)
+    mm.addEventListener('change', f)
+    return () => mm.removeEventListener('change', f)
+  }, [])
+  return m
+}

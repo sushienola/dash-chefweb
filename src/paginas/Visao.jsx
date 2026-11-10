@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
 import { rpcAll, R, R0, N, P, kR, br, brCurto, diaSemana, addDays, diffDays, soma, agrupar, COR_CANAL, COR_GRADE, COR_SETOR, parseIso } from '../lib'
-import { useDados, Estado, Kpi, Card, Tabela, tooltipStyle } from '../ui'
+import { useDados, Estado, Kpi, Card, Tabela, tooltipStyle, useCelular } from '../ui'
+import VisaoCelular from './VisaoCelular'
 
 const NOME_DIA = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
 const curto = (v) => {
@@ -11,7 +12,12 @@ const curto = (v) => {
   return 'R$' + Math.round(n).toLocaleString('pt-BR')
 }
 
-export default function Visao({ loja, ini, fim }) {
+export default function Visao(props) {
+  const cel = useCelular()
+  return cel ? <VisaoCelular {...props} /> : <VisaoComputador {...props} />
+}
+
+function VisaoComputador({ loja, ini, fim }) {
   const n = diffDays(ini, fim) + 1
   const st = useDados(async () => {
     const a = { p_loja: loja, p_ini: ini, p_fim: fim }

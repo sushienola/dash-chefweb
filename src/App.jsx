@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { sb, presets, br } from './lib'
+import { useCelular } from './ui'
 import Visao from './paginas/Visao'
 import Vendas from './paginas/Vendas'
 import Pagamentos from './paginas/Pagamentos'
@@ -89,6 +90,7 @@ function Painel({ email }) {
   const [periodo, setPeriodo] = useState(null)
   const [permitido, setPermitido] = useState(null)
   const [menuAberto, setMenuAberto] = useState(false)
+  const cel = useCelular()
 
   useEffect(() => {
     sb.rpc('is_staff').then(({ data }) => setPermitido(!!data))
@@ -148,7 +150,7 @@ function Painel({ email }) {
       </aside>
 
       <main>
-        <div className="topo">
+        <div className={'topo' + (cel && pag === 'visao' ? ' topo-cel-inicio' : '')}>
           <button className="hamb" onClick={() => setMenuAberto(!menuAberto)}>☰</button>
           <div className="titulo">
             <div className="sobre">
@@ -171,14 +173,16 @@ function Painel({ email }) {
                   {lista.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
                   <option value="pers">Personalizado</option>
                 </select>
+                {(!cel || periodo.id === 'pers') && <>
                 <input type="date" value={periodo.ini} onChange={(e) => e.target.value && setPeriodo({ ...periodo, id: 'pers', ini: e.target.value })} />
                 <span className="muted">até</span>
                 <input type="date" value={periodo.fim} onChange={(e) => e.target.value && setPeriodo({ ...periodo, id: 'pers', fim: e.target.value })} />
+                </>}
               </>
             )}
           </div>
         </div>
-        {!P.semPeriodo && ultimo && (
+        {!P.semPeriodo && ultimo && !cel && (
           <div className="faixa muted pequeno">
             Dados de vendas de {br(primeiro)} a {br(ultimo)} · dia de operação (o caixa da noite conta para o dia em que abriu)
           </div>
