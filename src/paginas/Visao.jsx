@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts'
-import { rpcAll, R, R0, N, P, kR, br, brCurto, diaSemana, addDays, diffDays, soma, agrupar, COR_CANAL, COR_GRADE, COR_SETOR, parseIso } from '../lib'
+import { rpcAll, R, R0, N, P, kR, br, brCurto, diaSemana, addDays, diffDays, soma, agrupar, COR_CANAL, COR_GRADE, COR_SETOR, FERIADOS, parseIso } from '../lib'
 import { useDados, Estado, Kpi, Card, Tabela, tooltipStyle, useCelular } from '../ui'
 import VisaoCelular from './VisaoCelular'
 
@@ -97,7 +97,7 @@ function VisaoComputador({ loja, ini, fim }) {
                       <div className="valor">{curto(x.fat)}</div>
                       <div className="barra" style={{ height: Math.max(6, (x.fat / calc.max7) * 90) }} />
                     </div>
-                    <div className="rot">{diaSemana(x.d)}, {brCurto(x.d)}</div>
+                    <div className="rot">{diaSemana(x.d)}, {brCurto(x.d)}{FERIADOS[x.d] && <span className="tag laranja" style={{ marginLeft: 6 }}>feriado</span>}</div>
                     <div className="linha"><span>Vendas</span><span>{N(x.vendas)}</span></div>
                     <div className="linha"><span>Pessoas</span><span>{N(x.pessoas)}</span></div>
                     <div className="linha"><span>Ticket</span><span>{curto(x.ticket)}</span></div>

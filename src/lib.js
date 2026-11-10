@@ -91,3 +91,21 @@ export const COR_CANAL = { Loja: '#b99be8', iFood: '#e8743b', Site: '#3d8f5f', R
 export const COR_SETOR = { Cozinha: '#e8743b', 'Sushi bar': '#b99be8', Copa: '#3d8f5f' }
 export const COR_TURNO = { 'Almoço': '#f0b860', Jantar: '#8e5bd6', 'Sem horário': '#cbbfae' }
 export const COR_GRADE = 'rgba(120, 84, 40, 0.10)'
+
+// feriados nacionais (afetam o movimento): usados para não comparar dia comum com feriado
+export const FERIADOS = {
+  '2026-01-01': 'Confraternização', '2026-02-16': 'Carnaval', '2026-02-17': 'Carnaval', '2026-04-03': 'Sexta-feira Santa',
+  '2026-04-21': 'Tiradentes', '2026-05-01': 'Dia do Trabalho', '2026-06-04': 'Corpus Christi', '2026-09-07': 'Independência',
+  '2026-10-12': 'N. Sra. Aparecida', '2026-11-02': 'Finados', '2026-11-15': 'Proclamação da República',
+  '2026-11-20': 'Consciência Negra', '2026-12-25': 'Natal',
+  '2027-01-01': 'Confraternização', '2027-02-08': 'Carnaval', '2027-02-09': 'Carnaval', '2027-03-26': 'Sexta-feira Santa',
+  '2027-04-21': 'Tiradentes', '2027-05-01': 'Dia do Trabalho', '2027-05-27': 'Corpus Christi', '2027-09-07': 'Independência',
+  '2027-10-12': 'N. Sra. Aparecida', '2027-11-02': 'Finados', '2027-11-15': 'Proclamação da República',
+  '2027-11-20': 'Consciência Negra', '2027-12-25': 'Natal',
+}
+export const mediana = (arr) => {
+  const a = [...arr].sort((x, y) => x - y)
+  if (!a.length) return 0
+  const m = Math.floor(a.length / 2)
+  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2
+}

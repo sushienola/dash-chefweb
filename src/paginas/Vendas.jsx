@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts'
-import { rpcAll, R, R0, N, P, br, diaSemana, soma, kR, COR_TURNO, COR_GRADE } from '../lib'
+import { rpcAll, R, R0, N, P, br, diaSemana, soma, kR, COR_TURNO, COR_GRADE, FERIADOS } from '../lib'
 import { useDados, Estado, Card, Tabela, Kpi, Aviso, tooltipStyle } from '../ui'
 
 const SEMANA = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom']
@@ -32,7 +32,7 @@ export default function Vendas({ loja, ini, fim }) {
     })
     const dias = [...m.values()].map((o) => ({ ...o, ticket: o.vendas ? o.fat / o.vendas : 0, sem: diaSemana(o.dia) }))
     const sem = SEMANA.map((s) => {
-      const ds = dias.filter((d) => d.sem === s)
+      const ds = dias.filter((d) => d.sem === s && !FERIADOS[d.dia])
       const k = ds.length || 1
       return { dia: s, 'Almoço': soma(ds, 'almoco') / k, Jantar: soma(ds, 'jantar') / k, n: ds.length }
     })
@@ -61,7 +61,7 @@ export default function Vendas({ loja, ini, fim }) {
                 <XAxis dataKey="dia" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis tickFormatter={kR} fontSize={11} width={70} tickLine={false} axisLine={false} />
                 <Tooltip {...tooltipStyle} cursor={{ fill: 'rgba(142,91,214,.06)' }} formatter={(v) => R(v)}
-                  labelFormatter={(s, p) => s + ' · média de ' + (p?.[0]?.payload?.n || 0) + ' dias'} />
+                  labelFormatter={(s, p) => s + ' · média de ' + (p?.[0]?.payload?.n || 0) + ' dias (sem feriados)'} />
                 <Legend iconType="circle" />
                 <Bar dataKey="Almoço" stackId="a" fill={COR_TURNO['Almoço']} />
                 <Bar dataKey="Jantar" stackId="a" fill={COR_TURNO.Jantar} radius={[8, 8, 0, 0]} />
@@ -74,7 +74,7 @@ export default function Vendas({ loja, ini, fim }) {
           </Card>
           <Card titulo="Dia a dia" ico="▤">
             <Tabela ordemInicial={{ k: 'dia', asc: false }} colunas={[
-              { k: 'dia', t: 'Dia', f: (v, l) => br(v) + ' ' + l.sem },
+              { k: 'dia', t: 'Dia', f: (v, l) => <>{br(v) + ' ' + l.sem}{FERIADOS[v] && <span className="tag laranja" style={{ marginLeft: 6 }} title={FERIADOS[v]}>feriado</span>}</> },
               { k: 'vendas', t: 'Vendas', num: true, f: N },
               { k: 'pessoas', t: 'Pessoas', num: true, f: N },
               { k: 'almoco', t: 'Almoço', num: true, f: R0 },

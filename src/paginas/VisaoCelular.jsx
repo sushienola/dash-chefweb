@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { rpcAll, R0, N, br, brCurto, addDays, diffDays, soma, agrupar, parseIso, iso, COR_SETOR, COR_CANAL } from '../lib'
+import { rpcAll, R0, N, br, brCurto, addDays, diffDays, soma, agrupar, parseIso, iso, COR_SETOR, COR_CANAL, FERIADOS, mediana } from '../lib'
 import { useDados, Estado } from '../ui'
 
 const NOME_DIA = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado']
@@ -35,7 +35,9 @@ export default function VisaoCelular({ loja, ini, fim, irPara }) {
   const st = useDados(async () => {
     const a = { p_loja: loja, p_ini: ini, p_fim: fim }
     // 1 dia: compara com o mesmo dia da semana anterior; período: com o período anterior de mesmo tamanho
-    const base = n === 1 ? { p_ini: addDays(fim, -7), p_fim: addDays(fim, -7) } : { p_ini: addDays(ini, -n), p_fim: addDays(ini, -1) }
+    let volta = 7
+    while (n === 1 && FERIADOS[addDays(fim, -volta)] && volta < 35) volta += 7   // pula feriados
+    const base = n === 1 ? { p_ini: addDays(fim, -volta), p_fim: addDays(fim, -volta) } : { p_ini: addDays(ini, -n), p_fim: addDays(ini, -1) }
     const f = parseIso(fim)
     const iniMes = iso(new Date(f.getFullYear(), f.getMonth(), 1))
     const iniMesAnt = iso(new Date(f.getFullYear(), f.getMonth() - 1, 1))
@@ -44,7 +46,7 @@ export default function VisaoCelular({ loja, ini, fim, irPara }) {
       rpcAll('resumo_dia', a),
       rpcAll('resumo_dia', { p_loja: loja, ...base }),
       rpcAll('itens_ranking', a),
-      rpcAll('resumo_dia', { p_loja: loja, p_ini: addDays(fim, -13), p_fim: fim }),
+      rpcAll('resumo_dia', { p_loja: loja, p_ini: addDays(fim, -35), p_fim: fim }),
       rpcAll('itens_dia_setor', a),
       rpcAll('resumo_dia', { p_loja: loja, p_ini: iniMes, p_fim: fim }),
       rpcAll('resumo_dia', { p_loja: loja, p_ini: iniMesAnt, p_fim: fimMesAnt }),
@@ -67,7 +69,11 @@ export default function VisaoCelular({ loja, ini, fim, irPara }) {
     }
     const sm = porDia(semana)
     const d14 = Array.from({ length: 14 }, (_, i) => addDays(fim, i - 13)).map((d) => sm.get(d) || { dia: d, fat: 0, vendas: 0, pessoas: 0 })
-    const hoje = d14[13], semanaPassada = d14[6]
+    const hoje = d14[13]
+    // referência: mediana das últimas 4 do mesmo dia da semana, sem feriados e sem dias zerados
+    const mesmos = [7, 14, 21, 28, 35].map((k) => addDays(fim, -k))
+      .filter((d) => !FERIADOS[d]).map((d) => (sm.get(d) || {}).fat || 0).filter((v) => v > 0).slice(0, 4)
+    const referencia = mediana(mesmos), nRef = mesmos.length
     const k = (rows) => {
       const fat = soma(rows, 'valor_total'), vendas = soma(rows, 'vendas')
       const loj = rows.filter((r) => r.canal === 'Loja')
@@ -81,7 +87,7 @@ export default function VisaoCelular({ loja, ini, fim, irPara }) {
     const canais = agrupar(dia, 'canal', ['valor_total']).sort((a, b) => b.valor_total - a.valor_total)
     const setores = ['Cozinha', 'Sushi bar', 'Copa'].map((s) => ({ s, qtd: soma(setor.filter((r) => r.setor === s), 'qtd'), valor: soma(setor.filter((r) => r.setor === s), 'valor') }))
     return {
-      hoje, semanaPassada, d14, at, an, fatMes, fatMesAnt, diasMes, iniMes,
+      hoje, referencia, nRef, d14, at, an, fatMes, fatMesAnt, diasMes, iniMes,
       canais, totCanais: soma(canais, 'valor_total'), setores, top: itens.slice(0, 6),
     }
   }, [st.dados, fim])
@@ -95,8 +101,9 @@ export default function VisaoCelular({ loja, ini, fim, irPara }) {
             <div className="olho">Último dia · {NOME_DIA[dDia.getDay()]}, {br(fim)}</div>
             <h2 className="cel-titulo">O dia fechou em <em>{R0(c.hoje.fat)}</em></h2>
             <p className="cel-sub">
-              {c.semanaPassada.fat > 0
-                ? <><b className={c.hoje.fat >= c.semanaPassada.fat ? 'sobe' : 'desce'}>{fmtPct(pct(c.hoje.fat, c.semanaPassada.fat))}</b> em relação à {NOME_DIA[dDia.getDay()]} passada ({R0(c.semanaPassada.fat)}).</>
+              {FERIADOS[fim] && <><b>Feriado: {FERIADOS[fim]}.</b>{' '}</>}
+              {c.referencia > 0
+                ? <><b className={c.hoje.fat >= c.referencia ? 'sobe' : 'desce'}>{fmtPct(pct(c.hoje.fat, c.referencia))}</b> em relação a uma {NOME_DIA[dDia.getDay()]} típica ({R0(c.referencia)}, mediana das últimas {c.nRef}, sem feriados).</>
                 : <>{N(c.hoje.vendas)} vendas no dia.</>}
             </p>
           </section>
@@ -146,7 +153,7 @@ export default function VisaoCelular({ loja, ini, fim, irPara }) {
                   <div className="cel-barras">
                     <div style={{ height: Math.max(8, (d.fat / Math.max(...c.d14.map((x) => x.fat), 1)) * 100) + '%' }} />
                   </div>
-                  <div className="olho">{NOME_DIA[parseIso(d.dia).getDay()].slice(0, 3)} · {brCurto(d.dia)}</div>
+                  <div className="olho">{NOME_DIA[parseIso(d.dia).getDay()].slice(0, 3)} · {brCurto(d.dia)}{FERIADOS[d.dia] ? ' · feriado' : ''}</div>
                   <div className="cel-dia-v">{curto(d.fat)}</div>
                   <div className="cel-mini">{N(d.vendas)} vendas</div>
                 </div>
