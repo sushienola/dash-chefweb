@@ -151,6 +151,10 @@ function Painel({ email }) {
         <div className="topo">
           <button className="hamb" onClick={() => setMenuAberto(!menuAberto)}>☰</button>
           <div className="titulo">
+            <div className="sobre">
+              {(lojas.find((l) => l.id === loja) || {}).nome || ''}
+              {!P.semPeriodo && periodo ? ' · ' + ((lista.find((x) => x.id === periodo.id) || {}).nome || 'personalizado') : ''}
+            </div>
             <h1 dangerouslySetInnerHTML={{ __html: P.t }} />
             <p>{P.sub}</p>
           </div>
@@ -195,6 +199,28 @@ function Painel({ email }) {
           )}
         </div>
       </main>
+
+      <nav className="tabbar">
+        {TABS.map((t) => (
+          <button key={t.id} className={(t.id === 'mais' ? menuAberto : pag === t.id && !menuAberto) ? 'on' : ''}
+            onClick={() => (t.id === 'mais' ? setMenuAberto(!menuAberto) : (setPag(t.id), setMenuAberto(false)))}>
+            {t.svg}
+            <span>{t.nome}</span>
+          </button>
+        ))}
+      </nav>
+      {menuAberto && <div className="veu" onClick={() => setMenuAberto(false)} />}
     </div>
   )
 }
+
+const ic = (d) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">{d}</svg>
+)
+const TABS = [
+  { id: 'visao', nome: 'Início', svg: ic(<path d="M3 17l5-5 4 3 8-8M15 7h5v5" />) },
+  { id: 'vendas', nome: 'Vendas', svg: ic(<><rect x="4" y="4" width="6" height="6" rx="1.5" /><rect x="14" y="4" width="6" height="6" rx="1.5" /><rect x="4" y="14" width="6" height="6" rx="1.5" /><rect x="14" y="14" width="6" height="6" rx="1.5" /></>) },
+  { id: 'itens', nome: 'Itens', svg: ic(<><path d="M7 3h7l4 4v14H7z" /><path d="M10 12h5M10 16h5M10 8h2" /></>) },
+  { id: 'cmv', nome: 'CMV', svg: ic(<><circle cx="7" cy="7" r="2.5" /><circle cx="17" cy="17" r="2.5" /><path d="M19 5L5 19" /></>) },
+  { id: 'mais', nome: 'Mais', svg: ic(<><path d="M4 7h16M4 12h16M4 17h10" /></>) },
+]
