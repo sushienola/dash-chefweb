@@ -84,8 +84,8 @@ export default function Fechamento({ loja }) {
   async function gravar() {
     setMsg(null)
     const { error } = await sb.from('fechamentos').insert({ loja, mes, dados: f })
-    if (error) setMsg({ erro: true, t: 'Erro ao gravar: ' + error.message })
-    else { setMsg({ t: 'Fechamento de ' + nomeMes(mes) + ' gravado.' }); setVersao((v) => v + 1) }
+    if (error) setMsg({ erro: true, t: 'Erro ao salvar: ' + error.message })
+    else { setMsg({ t: 'Resumo de ' + nomeMes(mes) + ' salvo.' }); setVersao((v) => v + 1) }
   }
 
   return (
@@ -96,9 +96,9 @@ export default function Fechamento({ loja }) {
             {meses.map((m) => <option key={m} value={m}>{nomeMes(m)}</option>)}
           </select>
         </label>
-        <button className="btn prim" onClick={gravar} disabled={!f}>{jaGravado ? 'Gravar de novo' : 'Gravar fechamento'}</button>
+        <button className="btn prim" onClick={gravar} disabled={!f}>{jaGravado ? 'Salvar de novo' : 'Salvar resumo'}</button>
         <button className="btn" onClick={() => window.print()}>Imprimir / PDF</button>
-        {jaGravado && <span className="tag verde">gravado em {new Date(jaGravado.gravado_em).toLocaleDateString('pt-BR')}</span>}
+        {jaGravado && <span className="tag verde">salvo em {new Date(jaGravado.gravado_em).toLocaleDateString('pt-BR')}</span>}
       </div>
       {msg && <Aviso tipo={msg.erro ? 'erro' : 'ok'}>{msg.t}</Aviso>}
       {!mesFechado && <Aviso>{nomeMes(mes)} ainda não terminou: os números são parciais.</Aviso>}
@@ -107,8 +107,9 @@ export default function Fechamento({ loja }) {
         {f && (
           <div className="fechamento">
             <div className="fech-cab">
-              <div className="sobre">Fechamento</div>
+              <div className="sobre">Resumo mensal</div>
               <h2 className="serif">{nomeMes(mes).replace(/^./, (c) => c.toUpperCase())}</h2>
+              <p className="muted" style={{ margin: '0 0 4px', fontStyle: 'italic' }}>dados TOTVS</p>
               {f.feriados.length > 0 && <p className="muted pequeno">Feriados no mês: {f.feriados.join(', ')}</p>}
             </div>
 
@@ -183,11 +184,11 @@ export default function Fechamento({ loja }) {
         )}
       </Estado>
 
-      <Card titulo="Fechamentos gravados" ico="↺">
+      <Card titulo="Resumos salvos" ico="↺">
         <Estado st={salvos}>
           <Tabela onClick={(l) => setMes(l.mes)} colunas={[
             { k: 'mes', t: 'Mês', f: nomeMes },
-            { k: 'gravado_em', t: 'Gravado em', f: (v) => new Date(v).toLocaleString('pt-BR') },
+            { k: 'gravado_em', t: 'Salvo em', f: (v) => new Date(v).toLocaleString('pt-BR') },
             { k: 'fat', t: 'Faturamento', num: true, f: R0 },
             { k: 'cmvt', t: <>CMV <Teorico /></>, num: true, f: P },
             { k: 'cmvr', t: 'CMV real', num: true, f: (v) => (v ? R0(v) : '—') },

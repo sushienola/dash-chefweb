@@ -22,7 +22,7 @@ const PAGINAS = [
   { id: 'equipe', sec: 'Principal', nome: 'Garçons e operadores', ico: '☺', C: Equipe, t: 'Equipe', sub: 'Quem mais vende, sem repetir o valor da mesa' },
   { id: 'cmv', sec: 'Custos', nome: 'CMV e insumos', ico: '%', C: Cmv, t: 'CMV e <em>insumos</em>', sub: 'Quanto custou o que foi vendido' },
   { id: 'compras', sec: 'Custos', nome: 'Compras', ico: '↓', C: Compras, t: 'Compras', sub: 'Por fornecedor e por produto' },
-  { id: 'fechamento', sec: 'Custos', nome: 'Fechar o mês', ico: '✓', C: Fechamento, semPeriodo: true, t: 'Fechamento do <em>mês</em>', sub: 'Vendas, produção e CMV num resumo só' },
+  { id: 'fechamento', sec: 'Custos', nome: 'Resumo mensal', ico: '✓', C: Fechamento, semPeriodo: true, t: 'Resumo <em>mensal</em>', sub: '<em>dados TOTVS</em>' },
   { id: 'contas', sec: 'Custos', nome: 'Contas a pagar', ico: '$', C: ContasPagar, t: 'Contas a <em>pagar</em>', sub: 'Vencimentos, pagos e em aberto' },
   { id: 'estoque', sec: 'Custos', nome: 'Contagem', ico: '▦', C: Estoque, semPeriodo: true, t: 'Contagem', sub: 'Fechamentos e contagens de estoque' },
   { id: 'produtos', sec: 'Cadastros', nome: 'Produtos e fichas', ico: '☰', C: Produtos, semPeriodo: true, t: 'Produtos e <em>fichas</em>', sub: 'Cardápio, cozinha e custo de cada prato' },
@@ -100,7 +100,7 @@ function Painel() {
               {!P.semPeriodo && periodo ? ' · ' + ((lista.find((x) => x.id === periodo.id) || {}).nome || 'personalizado') : ''}
             </div>
             <h1 dangerouslySetInnerHTML={{ __html: P.t }} />
-            <p>{P.sub}</p>
+            <p dangerouslySetInnerHTML={{ __html: P.sub }} />
           </div>
           <div className="filtros">
             <select value={loja} onChange={(e) => setLoja(Number(e.target.value))}>
