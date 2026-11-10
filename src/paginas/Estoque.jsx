@@ -29,7 +29,7 @@ export default function Estoque({ loja }) {
   return (
     <Estado st={refs}>
       {!lista.length ? (
-        <Aviso>Nenhuma contagem importada para esta loja. Suba o fechamento de estoque em <b>Importar arquivos</b>.</Aviso>
+        <Aviso>Nenhuma contagem importada para esta loja. Suba a planilha de contagem em <b>Importar arquivos</b>.</Aviso>
       ) : (
         <>
           <div className="barra-filtros">

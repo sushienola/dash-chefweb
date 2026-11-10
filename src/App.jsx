@@ -20,7 +20,7 @@ const PAGINAS = [
   { id: 'equipe', sec: 'Principal', nome: 'Garçons e operadores', ico: '☺', C: Equipe, t: 'Equipe', sub: 'Quem mais vende, sem repetir o valor da mesa' },
   { id: 'cmv', sec: 'Custos', nome: 'CMV e insumos', ico: '%', C: Cmv, t: 'CMV e <em>insumos</em>', sub: 'Quanto custou o que foi vendido' },
   { id: 'compras', sec: 'Custos', nome: 'Compras', ico: '↓', C: Compras, t: 'Compras', sub: 'Por fornecedor e por produto' },
-  { id: 'estoque', sec: 'Custos', nome: 'Estoque', ico: '▦', C: Estoque, semPeriodo: true, t: 'Estoque', sub: 'Fechamentos e contagens' },
+  { id: 'estoque', sec: 'Custos', nome: 'Contagem', ico: '▦', C: Estoque, semPeriodo: true, t: 'Contagem', sub: 'Fechamentos e contagens de estoque' },
   { id: 'produtos', sec: 'Cadastros', nome: 'Produtos e fichas', ico: '☰', C: Produtos, semPeriodo: true, t: 'Produtos e <em>fichas</em>', sub: 'Cardápio, cozinha e custo de cada prato' },
   { id: 'importar', sec: 'Cadastros', nome: 'Importar arquivos', ico: '⇪', C: Importar, semPeriodo: true, t: 'Importar <em>arquivos</em>', sub: 'Relatórios da TOTVS e planilhas de contagem' },
 ]
@@ -59,7 +59,7 @@ function Login() {
   return (
     <div className="login">
       <form onSubmit={enviar} className="login-box">
-        <div className="marca" style={{ padding: 0 }}><span className="logo">鮨</span>Dash ChefWeb</div>
+        <div className="marca" style={{ padding: 0 }}><img className="logo" src="/favicon.svg" alt="" />Dash ChefWeb</div>
         <h1>{modo === 'entrar' ? <>Bem-<em>vinda</em></> : <>Primeiro <em>acesso</em></>}</h1>
         <p className="muted">{modo === 'entrar' ? 'Entre com seu e-mail e senha.' : 'Crie sua senha (mínimo 6 caracteres).'}</p>
         <input type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -113,7 +113,7 @@ function Painel({ email }) {
   if (permitido === false)
     return (
       <div className="login"><div className="login-box">
-        <div className="marca" style={{ padding: 0 }}><span className="logo">鮨</span>Dash ChefWeb</div>
+        <div className="marca" style={{ padding: 0 }}><img className="logo" src="/favicon.svg" alt="" />Dash ChefWeb</div>
         <p>O e-mail <b>{email}</b> ainda não tem acesso à dash.</p>
         <p className="muted">Peça para a administração incluir seu e-mail na lista de usuários permitidos.</p>
         <button className="btn" onClick={() => sb.auth.signOut()}>Sair</button>
@@ -126,7 +126,7 @@ function Painel({ email }) {
   return (
     <div className="app">
       <aside className={'lateral ' + (menuAberto ? 'aberto' : '')}>
-        <div className="marca"><span className="logo">鮨</span>Dash ChefWeb</div>
+        <div className="marca"><img className="logo" src="/favicon.svg" alt="" />Dash ChefWeb</div>
         <nav>
           {['Principal', 'Custos', 'Cadastros'].map((sec) => (
             <div key={sec} style={{ display: 'contents' }}>

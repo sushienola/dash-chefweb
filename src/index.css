@@ -50,7 +50,7 @@ h3 { font-family: var(--serif); font-weight: 400; font-size: 22px; margin: 0; le
   position: sticky; top: 18px; height: calc(100vh - 36px);
 }
 .marca { display: flex; align-items: center; gap: 10px; padding: 22px 20px 18px; font-weight: 700; font-size: 16px; color: var(--tinta); }
-.marca .logo { width: 30px; height: 30px; border-radius: 9px; background: var(--tinta); color: #f6e7cf; display: grid; place-items: center; font-size: 15px; }
+.marca .logo { width: 30px; height: 30px; display: block; filter: drop-shadow(0 2px 6px rgba(142, 91, 214, .35)); }
 .lateral nav { display: flex; flex-direction: column; gap: 2px; padding: 0 10px; flex: 1; overflow-y: auto; }
 .nav-sec { font-size: 11px; color: var(--muted); padding: 14px 12px 6px; }
 .lateral nav button {
