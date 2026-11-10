@@ -84,7 +84,7 @@ export default function Visao({ loja, ini, fim }) {
               </div>
             </div>
             <Card titulo="Últimos 7 dias" ico="↗" extra={<span className="tag">média {R0(calc.media7)}</span>}>
-              <div className="semana">
+              <div className="semana" ref={(el) => { if (el) el.scrollLeft = el.scrollWidth }}>
                 {calc.dias7.map((x, i) => (
                   <div key={x.d} className={'col ' + (i === 6 ? 'hoje' : '')}>
                     <div className="topo-col">

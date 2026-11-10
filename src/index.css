@@ -196,13 +196,30 @@ main { flex: 1; min-width: 0; padding: 8px 6px 40px; }
 
 @media (max-width: 1000px) {
   .grade2, .grade-hero { grid-template-columns: 1fr; }
-  .semana { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .semana .col:nth-child(-n+3) { display: none; }
+  .semana { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 -22px; padding: 0 12px; }
+  .semana .col { min-width: 132px; flex: 0 0 132px; scroll-snap-align: start; }
 }
 @media (max-width: 860px) {
   .app { padding: 10px; }
   .lateral { position: fixed; left: -260px; top: 10px; z-index: 20; transition: left .2s; height: calc(100vh - 20px); background: rgba(255, 248, 236, .97); }
   .lateral.aberto { left: 10px; box-shadow: 0 10px 40px rgba(0, 0, 0, .2); }
-  .hamb { display: block; }
+  .hamb { display: block; align-self: flex-start; margin-top: 6px; }
+  .topo { align-items: flex-start; }
+  .titulo { min-width: 0; flex: 1; }
   h1 { font-size: 32px; }
+  .filtros { width: 100%; }
+  .filtros select { flex: 1 1 40%; min-width: 0; }
+  .filtros input { flex: 1 1 35%; min-width: 0; }
+  .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi { padding: 13px 14px; }
+  .kpi-v { font-size: 23px; overflow-wrap: anywhere; }
+  .card { padding: 16px 16px; border-radius: 18px; }
+  h3 { font-size: 20px; }
+  .hero h2 { font-size: 32px; }
+  .hero .grande { font-size: 42px; }
+  .barra-filtros input { min-width: 0; width: 100%; }
+  .barra-filtros select { flex: 1; }
+  .card-h { flex-wrap: wrap; }
+  .tabela { font-size: 12.5px; }
+  .tabela td, .tabela th { padding: 8px 8px; }
 }
