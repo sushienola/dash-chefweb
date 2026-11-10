@@ -9,11 +9,9 @@
 //
 //  CONFIGURAÇÃO (uma vez só):
 //   1. Preencha a senha abaixo.
-//   2. Menu 🍣 ChefWeb → "🔑 Configurar chave do Supabase" e cole a chave secreta
-//      (Supabase → Project Settings → API Keys → Secret key).
-//   3. Menu 🍣 ChefWeb → "📤 Enviar histórico da planilha para a dash" (uma vez só:
+//   2. Menu 🍣 ChefWeb → "📤 Enviar histórico da planilha para a dash" (uma vez só:
 //      lê as abas Vendas, Itens, Pagamentos, Produtos, Fichas_Tecnicas e Fichas_Insumos).
-//   3b. Menu 🍣 ChefWeb → "🔄 Buscar últimos 3 dias" para testar.
+//   3. Menu 🍣 ChefWeb → "🔄 Buscar últimos 3 dias" para testar.
 //   4. Menu 🍣 ChefWeb → "⚙️ Ativar sync diário automático".
 // ═════════════════════════════════════════════════════════════
 
@@ -28,6 +26,8 @@ var CONFIG = {
 
   lojaDash:      1,     // 1 = SUSHI LEBLON, 2 = NOLA (número da loja na dash)
   supabaseUrl:   "https://mueekpzpmcehgxqzmotn.supabase.co",
+  supabaseChave: "sb_publishable_ghvkqR97r2pZWugR-wXhFw_n-G-85iQ",   // chave pública (pode ficar no código)
+  tokenIntegracao: "COLOQUE_O_TOKEN_DE_INTEGRACAO",                                      // senha de integração deste script (não compartilhe)
 
   horarioInicio: 11,    // janela da operação: 11h do dia...
   horarioCorte:  6,     // ...até 5h59 do dia seguinte
@@ -47,20 +47,9 @@ function onOpen() {
     .addItem("⚙️ Ativar sync diário automático", "ativarSyncDiario")
     .addItem("🗑️ Desativar sync diário", "desativarSyncDiario")
     .addSeparator()
-    .addItem("🔑 Configurar chave do Supabase", "configurarChave")
     .addItem("📤 Enviar histórico da planilha para a dash", "enviarHistorico")
     .addItem("🔍 Ver campos que a API manda", "verCamposAPI")
     .addToUi();
-}
-
-function configurarChave() {
-  var ui = SpreadsheetApp.getUi();
-  var r = ui.prompt("Cole a chave SECRETA do Supabase\n(Project Settings → API Keys → Secret keys)", ui.ButtonSet.OK_CANCEL);
-  if (r.getSelectedButton() !== ui.Button.OK) return;
-  var k = r.getResponseText().trim();
-  if (!k) return;
-  PropertiesService.getScriptProperties().setProperty("SUPABASE_KEY", k);
-  ui.alert("✅ Chave salva (fica guardada só neste projeto, fora do código).");
 }
 
 function buscarUltimosDias() {
@@ -121,7 +110,6 @@ function _buscarUltimos(n) {
 //  BUSCA PRINCIPAL
 // ─────────────────────────────────────────────
 function buscarPeriodo(dataInicio, dataFim) {
-  _chaveSupabase(); // falha cedo se não estiver configurada
   var total = _diffDias(dataInicio, dataFim);
   if (total < 0) throw new Error("A data final é antes da inicial.");
 
@@ -129,9 +117,9 @@ function buscarPeriodo(dataInicio, dataFim) {
   for (var d = 0; d <= total; d++) {
     var dia = _somarDias(dataInicio, d);
     var r = _montarDia(_chamarAPI(dia), dia);
-    _enviarSupabase("vendas", r.vendas, "chave_venda");
-    _enviarSupabase("itens", r.itens, "chave_item");
-    _enviarSupabase("pagamentos", r.pag, "chave_pagto");
+    _enviarSupabase("vendas", r.vendas);
+    _enviarSupabase("itens", r.itens);
+    _enviarSupabase("pagamentos", r.pag);
     cont.vendas += r.vendas.length; cont.itens += r.itens.length; cont.pag += r.pag.length;
     linhas.push(dia + ": " + r.vendas.length + " vendas, " + r.itens.length + " itens");
     if (d < total) Utilities.sleep(2000);
@@ -241,41 +229,31 @@ function _montarDia(vendas, dia) {
 // ─────────────────────────────────────────────
 //  SUPABASE
 // ─────────────────────────────────────────────
-function _chaveSupabase() {
-  var k = PropertiesService.getScriptProperties().getProperty("SUPABASE_KEY");
-  if (!k) throw new Error("Chave do Supabase não configurada. Use o menu 🍣 ChefWeb → 🔑 Configurar chave do Supabase.");
-  return k;
+function _chaveSupabase() { return CONFIG.supabaseChave; }
+
+// envia para o Supabase pela função "ingerir" (protegida pelo token de integração)
+function _rpcIngerir(tabela, linhas, modo) {
+  var resp = UrlFetchApp.fetch(CONFIG.supabaseUrl + "/rest/v1/rpc/ingerir", _reqIngerir(tabela, linhas, modo));
+  if (resp.getResponseCode() >= 300) throw new Error("Supabase (" + tabela + ") HTTP " + resp.getResponseCode() + ": " + resp.getContentText().substring(0, 400));
+  return resp;
 }
 
-function _headersSupabase() {
-  var k = _chaveSupabase();
-  var h = { apikey: k, Prefer: "resolution=merge-duplicates,return=minimal" };
-  if (k.indexOf("eyJ") === 0) h.Authorization = "Bearer " + k; // chave antiga (JWT service_role)
-  return h;
+function _reqIngerir(tabela, linhas, modo) {
+  return {
+    url: CONFIG.supabaseUrl + "/rest/v1/rpc/ingerir", method: "post", contentType: "application/json",
+    muteHttpExceptions: true, headers: { apikey: CONFIG.supabaseChave },
+    payload: JSON.stringify({ p_token: CONFIG.tokenIntegracao, p_tabela: tabela, p_linhas: linhas, p_modo: modo || "merge" }),
+  };
 }
 
-function _enviarSupabase(tabela, linhas, conflito) {
-  if (!linhas.length) return;
-  var url = CONFIG.supabaseUrl + "/rest/v1/" + tabela + (conflito ? "?on_conflict=" + conflito : "");
-  for (var i = 0; i < linhas.length; i += 500) {
-    var lote = linhas.slice(i, i + 500);
-    var resp = UrlFetchApp.fetch(url, {
-      method: "post", contentType: "application/json", muteHttpExceptions: true,
-      headers: _headersSupabase(), payload: JSON.stringify(lote),
-    });
-    var cod = resp.getResponseCode();
-    if (cod >= 300) throw new Error("Supabase (" + tabela + ") HTTP " + cod + ": " + resp.getContentText().substring(0, 400));
-  }
+function _enviarSupabase(tabela, linhas) {
+  for (var i = 0; i < linhas.length; i += 500) _rpcIngerir(tabela, linhas.slice(i, i + 500), "merge");
 }
 
 function _registrar(tipo, detalhes, linhas) {
   try {
-    var resp = UrlFetchApp.fetch(CONFIG.supabaseUrl + "/rest/v1/importacoes", {
-      method: "post", contentType: "application/json", muteHttpExceptions: true, headers: _headersSupabase(),
-      payload: JSON.stringify({ tipo: tipo, arquivo: "Apps Script", loja: CONFIG.lojaDash,
-        linhas: linhas, detalhes: detalhes, feito_por: "sync automático" }),
-    });
-    if (resp.getResponseCode() >= 300) Logger.log("Log não gravado: " + resp.getContentText());
+    _rpcIngerir("importacoes", [{ tipo: tipo, arquivo: "Apps Script", loja: CONFIG.lojaDash,
+      linhas: linhas, detalhes: detalhes, feito_por: "sync automático" }], "merge");
   } catch (e) { Logger.log("Log não gravado: " + e.message); }
 }
 
@@ -404,7 +382,6 @@ var HIST = [
 ];
 
 function enviarHistorico() {
-  _chaveSupabase();
   PropertiesService.getScriptProperties().setProperty("HIST_ESTADO", JSON.stringify({ t: 0, linha: 2, total: 0 }));
   _alerta("📤 Envio do histórico iniciado.\n\nEle roda em partes e continua sozinho a cada minuto.\n" +
     "Acompanhe na dash (tela Importar → Últimas importações) ou em Extensões → Apps Script → Execuções.\n" +
@@ -428,7 +405,7 @@ function _continuarHistorico() {
     var cab = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0].map(String);
     var ultima = aba.getLastRow();
 
-    if (est.linha === 2 && def.apagarAntes) _apagarSupabase(def.tabela, "loja=eq." + CONFIG.lojaDash);
+    if (est.linha === 2 && def.apagarAntes) _apagarSupabase(def.tabela);
 
     while (est.linha <= ultima) {
       if (Date.now() - inicio > 4.5 * 60 * 1000) {   // perto do limite: agenda a continuação
@@ -464,18 +441,12 @@ function _continuarHistorico() {
 // envia vários lotes em paralelo
 function _enviarLotes(tabela, linhas, conflito, resolucao) {
   if (!linhas.length) return;
-  var url = CONFIG.supabaseUrl + "/rest/v1/" + tabela + (conflito ? "?on_conflict=" + conflito : "");
-  var h = _headersSupabase();
-  h.Prefer = "resolution=" + resolucao + ",return=minimal";
+  var modo = resolucao === "ignore-duplicates" ? "ignorar" : "merge";
   var reqs = [];
-  for (var i = 0; i < linhas.length; i += 1000) {
-    reqs.push({ url: url, method: "post", contentType: "application/json", headers: h,
-      payload: JSON.stringify(linhas.slice(i, i + 1000)), muteHttpExceptions: true });
-  }
+  for (var i = 0; i < linhas.length; i += 1000) reqs.push(_reqIngerir(tabela, linhas.slice(i, i + 1000), modo));
   for (var k = 0; k < reqs.length; k += 5) {
     var grupo = reqs.slice(k, k + 5);
-    var resps = UrlFetchApp.fetchAll(grupo);
-    resps.forEach(function(r, j) {
+    UrlFetchApp.fetchAll(grupo).forEach(function(r, j) {
       if (r.getResponseCode() >= 300) {
         var r2 = UrlFetchApp.fetch(grupo[j].url, grupo[j]);   // tenta de novo uma vez
         if (r2.getResponseCode() >= 300) throw new Error("Supabase (" + tabela + ") HTTP " + r2.getResponseCode() + ": " + r2.getContentText().substring(0, 300));
@@ -484,9 +455,8 @@ function _enviarLotes(tabela, linhas, conflito, resolucao) {
   }
 }
 
-function _apagarSupabase(tabela, filtro) {
-  var resp = UrlFetchApp.fetch(CONFIG.supabaseUrl + "/rest/v1/" + tabela + "?" + filtro, {
-    method: "delete", headers: _headersSupabase(), muteHttpExceptions: true });
+function _apagarSupabase(tabela) {
+  var resp = UrlFetchApp.fetch(CONFIG.supabaseUrl + "/rest/v1/rpc/ingerir", _reqIngerir(tabela, { loja: CONFIG.lojaDash }, "apagar"));
   if (resp.getResponseCode() >= 300) throw new Error("Apagar " + tabela + ": " + resp.getContentText().substring(0, 300));
 }
 
