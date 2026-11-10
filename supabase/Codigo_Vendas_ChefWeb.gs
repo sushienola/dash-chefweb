@@ -11,7 +11,9 @@
 //   1. Preencha a senha abaixo.
 //   2. Menu 🍣 ChefWeb → "🔑 Configurar chave do Supabase" e cole a chave secreta
 //      (Supabase → Project Settings → API Keys → Secret key).
-//   3. Menu 🍣 ChefWeb → "🔄 Buscar últimos 3 dias" para testar.
+//   3. Menu 🍣 ChefWeb → "📤 Enviar histórico da planilha para a dash" (uma vez só:
+//      lê as abas Vendas, Itens, Pagamentos, Produtos, Fichas_Tecnicas e Fichas_Insumos).
+//   3b. Menu 🍣 ChefWeb → "🔄 Buscar últimos 3 dias" para testar.
 //   4. Menu 🍣 ChefWeb → "⚙️ Ativar sync diário automático".
 // ═════════════════════════════════════════════════════════════
 
@@ -46,6 +48,7 @@ function onOpen() {
     .addItem("🗑️ Desativar sync diário", "desativarSyncDiario")
     .addSeparator()
     .addItem("🔑 Configurar chave do Supabase", "configurarChave")
+    .addItem("📤 Enviar histórico da planilha para a dash", "enviarHistorico")
     .addItem("🔍 Ver campos que a API manda", "verCamposAPI")
     .addToUi();
 }
@@ -383,4 +386,163 @@ function _r2(n) { return Math.round(n * 100) / 100; }
 function _alerta(msg) {
   Logger.log(msg);
   try { SpreadsheetApp.getUi().alert(msg); } catch (e) {}
+}
+
+
+// ═════════════════════════════════════════════════════════════
+//  HISTÓRICO: lê as abas desta planilha e envia ao Supabase.
+//  Roda em partes (o Google limita cada execução a 6 min) e continua
+//  sozinho a cada minuto até terminar. Não duplica: o que já existe é mantido.
+// ═════════════════════════════════════════════════════════════
+var HIST = [
+  { aba: "Vendas", tabela: "vendas", conflito: "chave_venda", chave: "ChaveVenda" },
+  { aba: "Pagamentos", tabela: "pagamentos", conflito: "chave_pagto", chave: "ChavePagto" },
+  { aba: "Itens", tabela: "itens", conflito: "chave_item", chave: "ChaveItem" },
+  { aba: "Produtos", tabela: "produtos", conflito: "loja,codigo", chave: "CodigoProduto", atualizar: true },
+  { aba: "Fichas_Tecnicas", tabela: "fichas", chave: "CodigoComposto", apagarAntes: true },
+  { aba: "Fichas_Insumos", tabela: "fichas_insumos", conflito: "loja,codigo_produto,codigo_insumo", chave: "CodigoProduto", apagarAntes: true },
+];
+
+function enviarHistorico() {
+  _chaveSupabase();
+  PropertiesService.getScriptProperties().setProperty("HIST_ESTADO", JSON.stringify({ t: 0, linha: 2, total: 0 }));
+  _alerta("📤 Envio do histórico iniciado.\n\nEle roda em partes e continua sozinho a cada minuto.\n" +
+    "Acompanhe na dash (tela Importar → Últimas importações) ou em Extensões → Apps Script → Execuções.\n" +
+    "Pode fechar a planilha.");
+  _continuarHistorico();
+}
+
+function _continuarHistorico() {
+  var props = PropertiesService.getScriptProperties();
+  var est = JSON.parse(props.getProperty("HIST_ESTADO") || "null");
+  _apagarGatilho("_continuarHistorico");
+  if (!est) return;
+  var inicio = Date.now(), ss = SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openById(props.getProperty("PLANILHA_ID"));
+  props.setProperty("PLANILHA_ID", ss.getId());
+  var tz = ss.getSpreadsheetTimeZone();
+
+  while (est.t < HIST.length) {
+    var def = HIST[est.t];
+    var aba = ss.getSheetByName(def.aba);
+    if (!aba) { est.t++; est.linha = 2; continue; }
+    var cab = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0].map(String);
+    var ultima = aba.getLastRow();
+
+    if (est.linha === 2 && def.apagarAntes) _apagarSupabase(def.tabela, "loja=eq." + CONFIG.lojaDash);
+
+    while (est.linha <= ultima) {
+      if (Date.now() - inicio > 4.5 * 60 * 1000) {   // perto do limite: agenda a continuação
+        props.setProperty("HIST_ESTADO", JSON.stringify(est));
+        ScriptApp.newTrigger("_continuarHistorico").timeBased().after(60 * 1000).create();
+        Logger.log("Pausa em " + def.aba + " linha " + est.linha + " — continua em 1 min");
+        return;
+      }
+      var n = Math.min(5000, ultima - est.linha + 1);
+      var valores = aba.getRange(est.linha, 1, n, cab.length).getValues();
+      var objs = [];
+      valores.forEach(function(r) {
+        var o = {};
+        cab.forEach(function(c, j) { o[c] = r[j]; });
+        if (o[def.chave] === "" || o[def.chave] === null) return;
+        var m = _mapearHist(def.aba, o, tz);
+        if (m) objs.push(m);
+      });
+      _enviarLotes(def.tabela, objs, def.conflito, def.atualizar ? "merge-duplicates" : "ignore-duplicates");
+      est.total += objs.length;
+      est.linha += n;
+      props.setProperty("HIST_ESTADO", JSON.stringify(est));
+    }
+    _registrar("historico", def.aba + ": até a linha " + ultima, est.total);
+    est.t++; est.linha = 2;
+    props.setProperty("HIST_ESTADO", JSON.stringify(est));
+  }
+  props.deleteProperty("HIST_ESTADO");
+  _registrar("historico", "Histórico completo enviado", est.total);
+  Logger.log("✅ Histórico enviado: " + est.total + " linhas");
+}
+
+// envia vários lotes em paralelo
+function _enviarLotes(tabela, linhas, conflito, resolucao) {
+  if (!linhas.length) return;
+  var url = CONFIG.supabaseUrl + "/rest/v1/" + tabela + (conflito ? "?on_conflict=" + conflito : "");
+  var h = _headersSupabase();
+  h.Prefer = "resolution=" + resolucao + ",return=minimal";
+  var reqs = [];
+  for (var i = 0; i < linhas.length; i += 1000) {
+    reqs.push({ url: url, method: "post", contentType: "application/json", headers: h,
+      payload: JSON.stringify(linhas.slice(i, i + 1000)), muteHttpExceptions: true });
+  }
+  for (var k = 0; k < reqs.length; k += 5) {
+    var grupo = reqs.slice(k, k + 5);
+    var resps = UrlFetchApp.fetchAll(grupo);
+    resps.forEach(function(r, j) {
+      if (r.getResponseCode() >= 300) {
+        var r2 = UrlFetchApp.fetch(grupo[j].url, grupo[j]);   // tenta de novo uma vez
+        if (r2.getResponseCode() >= 300) throw new Error("Supabase (" + tabela + ") HTTP " + r2.getResponseCode() + ": " + r2.getContentText().substring(0, 300));
+      }
+    });
+  }
+}
+
+function _apagarSupabase(tabela, filtro) {
+  var resp = UrlFetchApp.fetch(CONFIG.supabaseUrl + "/rest/v1/" + tabela + "?" + filtro, {
+    method: "delete", headers: _headersSupabase(), muteHttpExceptions: true });
+  if (resp.getResponseCode() >= 300) throw new Error("Apagar " + tabela + ": " + resp.getContentText().substring(0, 300));
+}
+
+function _apagarGatilho(nome) {
+  ScriptApp.getProjectTriggers().forEach(function(t) { if (t.getHandlerFunction() === nome) ScriptApp.deleteTrigger(t); });
+}
+
+function _mapearHist(aba, o, tz) {
+  var L = CONFIG.lojaDash;
+  var dia = function(v) {
+    if (v instanceof Date) return Utilities.formatDate(v, tz, "yyyy-MM-dd");
+    var s = String(v || "").trim();
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s); if (m) return m[1] + "-" + m[2] + "-" + m[3];
+    m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(s); if (m) return m[3] + "-" + ("0" + m[2]).slice(-2) + "-" + ("0" + m[1]).slice(-2);
+    return null;
+  };
+  var hora = function(v) {
+    if (v instanceof Date) return Utilities.formatDate(v, tz, "HH:mm");
+    var s = String(v || "").trim(); return s || null;
+  };
+  var num = function(v) { if (v === "" || v === null) return null; var x = Number(v); return isNaN(x) ? null : x; };
+  var z = function(v) { return num(v) || 0; };
+  var int = function(v) { var x = num(v); return x === null ? null : Math.round(x); };
+  var t = function(v) { if (v === "" || v === null || v === undefined) return null; return String(v).trim() || null; };
+
+  if (aba === "Vendas") return {
+    chave_venda: t(o.ChaveVenda), loja: L, dia: dia(o.DiaOperacao), canal: t(o.Canal), status_venda: int(o.StatusVenda),
+    status: t(o.Status), numero_cupom: t(o.NumeroCupom), numero_nota: t(o.NumeroNota), modelo_fiscal: t(o.ModeloFiscal),
+    mesa: t(o.Mesa), qtd_pessoas: num(o.QtdPessoas), operador: t(o.Operador), garcons: t(o.Garcons),
+    caixa_numero: t(o.CaixaNumero), caixa_fechamento: t(o.CaixaFechamento), cliente: t(o.Cliente),
+    valor_itens: z(o.ValorItens), valor_servico: z(o.ValorServico), valor_total: z(o.ValorTotal),
+    descontos: z(o.Descontos), valor_troco: z(o.ValorTroco), data_integracao: t(o.DataIntegracao), fonte: t(o.Fonte) };
+  if (aba === "Pagamentos") return {
+    chave_pagto: t(o.ChavePagto), chave_venda: t(o.ChaveVenda), loja: L, dia: dia(o.DiaOperacao), status_venda: int(o.StatusVenda),
+    descricao: t(o.Descricao), forma: t(o.Forma), bandeira: t(o.Bandeira), maquininha: t(o.Maquininha),
+    valor: z(o.Valor), fonte: t(o.Fonte) };
+  if (aba === "Itens") return {
+    chave_item: t(o.ChaveItem), chave_venda: t(o.ChaveVenda), loja: L, dia: dia(o.DiaOperacao), canal: t(o.Canal),
+    status_venda: int(o.StatusVenda), codigo_produto: int(o.CodigoProduto), produto: t(o.Produto), subgrupo: t(o.SubGrupo),
+    quantidade: z(o.Quantidade), valor_unitario: z(o.ValorUnitario), desconto: z(o.Desconto), acrescimo: z(o.Acrescimo),
+    valor_total: z(o.ValorTotal), hora: hora(o.HoraLancamento), garcom: t(o.Garcom) };
+  if (aba === "Produtos") {
+    if (!t(o.Produto)) return null;
+    var local = String(o.LocalImpressao || "").replace(/,+$/, "").trim();
+    var auto = local.toUpperCase().indexOf("COZINHA") >= 0;
+    return { loja: L, codigo: int(o.CodigoProduto), produto: t(o.Produto), grupo: t(o.Grupo), subgrupo: t(o.SubGrupo),
+      canal: t(o.Canal), local_impressao: local || null, preco_venda: num(o.PrecoVenda),
+      ativo: String(o.AtivoNoCardapio).trim() !== "NÃO", cozinha_auto: auto,
+      cozinha_manual: (String(o.Cozinha).trim() === "SIM" && !auto) ? true : null,
+      observacao: t(o.Observacao), custo_ficha: num(o.CustoFicha) };
+  }
+  if (aba === "Fichas_Tecnicas") return {
+    loja: L, codigo_composto: int(o.CodigoComposto), composto: t(o.Composto), codigo_insumo: int(o.CodigoInsumo),
+    insumo: t(o.Insumo), qtd: num(o.Qtd), un: t(o.Un), custo: num(o.Custo), valor: num(o.Valor) };
+  if (aba === "Fichas_Insumos") return {
+    loja: L, codigo_produto: int(o.CodigoProduto), codigo_insumo: int(o.CodigoInsumo), insumo: t(o.Insumo),
+    qtd_por_unidade: num(o.QtdPorUnidade), un: t(o.Un), custo_unit: num(o.CustoUnitInsumo), custo_no_prato: num(o.CustoNoPrato) };
+  return null;
 }
