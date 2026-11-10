@@ -24,7 +24,7 @@ const PAGINAS = [
   { id: 'compras', sec: 'Custos', nome: 'Compras', ico: '↓', C: Compras, t: 'Compras', sub: 'Por fornecedor e por produto' },
   { id: 'fechamento', sec: 'Custos', nome: 'Resumo mensal', ico: '✓', C: Fechamento, semPeriodo: true, t: 'Resumo <em>mensal</em>', sub: '<em>dados TOTVS</em>' },
   { id: 'contas', sec: 'Custos', nome: 'Contas a pagar', ico: '$', C: ContasPagar, t: 'Contas a <em>pagar</em>', sub: 'Vencimentos, pagos e em aberto' },
-  { id: 'estoque', sec: 'Custos', nome: 'Contagem', ico: '▦', C: Estoque, semPeriodo: true, t: 'Contagem', sub: 'Fechamentos e contagens de estoque' },
+  { id: 'estoque', sec: 'Custos', nome: 'Contagem', ico: '▦', C: Estoque, semPeriodo: true, t: 'Contagem', sub: 'Contagens de estoque' },
   { id: 'produtos', sec: 'Cadastros', nome: 'Produtos e fichas', ico: '☰', C: Produtos, semPeriodo: true, t: 'Produtos e <em>fichas</em>', sub: 'Cardápio, cozinha e custo de cada prato' },
   { id: 'importar', sec: 'Cadastros', nome: 'Importar arquivos', ico: '⇪', C: Importar, semPeriodo: true, t: 'Importar <em>arquivos</em>', sub: 'Relatórios da TOTVS e planilhas de contagem' },
 ]
