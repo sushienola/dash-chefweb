@@ -86,5 +86,6 @@ export function agrupar(arr, chave, campos) {
   return [...m.values()]
 }
 
-export const CORES = ['#2f6fdf', '#e0702e', '#2a9d6f', '#c2417a', '#7a5bd1', '#b8902a', '#4a9fb5', '#8a8a8a', '#d14b4b', '#5d7a3a']
-export const COR_CANAL = { Loja: '#2f6fdf', iFood: '#d14b4b', Site: '#2a9d6f', Rappi: '#e0702e', Outro: '#8a8a8a' }
+export const CORES = ['#8e5bd6', '#e8743b', '#3d8f5f', '#d9a43a', '#c06c9b', '#5b7fc7', '#b7a3e6', '#a08670', '#c94a3d', '#7aa15a']
+export const COR_CANAL = { Loja: '#b99be8', iFood: '#e8743b', Site: '#3d8f5f', Rappi: '#d9a43a', Outro: '#a08670' }
+export const COR_GRADE = 'rgba(120, 84, 40, 0.10)'

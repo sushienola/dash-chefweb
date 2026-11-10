@@ -29,8 +29,8 @@ export function Kpi({ titulo, valor, sub, delta }) {
       {(sub || delta != null) && (
         <div className="kpi-s">
           {delta != null && isFinite(delta) && (
-            <span className={delta >= 0 ? 'up' : 'down'}>
-              {delta >= 0 ? '▲' : '▼'} {Math.abs(delta * 100).toFixed(1).replace('.', ',')}%
+            <span className={'pill ' + (delta >= 0 ? 'up' : 'down')}>
+              {delta >= 0 ? '+' : '−'}{Math.abs(delta * 100).toFixed(1).replace('.', ',')}%
             </span>
           )}
           {sub && <span> {sub}</span>}
@@ -40,12 +40,12 @@ export function Kpi({ titulo, valor, sub, delta }) {
   )
 }
 
-export function Card({ titulo, extra, children, className = '' }) {
+export function Card({ titulo, ico, extra, children, className = '' }) {
   return (
     <section className={'card ' + className}>
       {(titulo || extra) && (
         <header className="card-h">
-          <h3>{titulo}</h3>
+          <h3>{ico && <span className="ico-t">{ico}</span>}{titulo}</h3>
           {extra}
         </header>
       )}
@@ -114,6 +114,6 @@ export function Abas({ abas, ativa, onChange }) {
 }
 
 export const tooltipStyle = {
-  contentStyle: { borderRadius: 8, border: '1px solid #e3e6ec', fontSize: 12 },
+  contentStyle: { borderRadius: 14, border: '1px solid rgba(120,84,40,.15)', fontSize: 12, background: '#fffaf2', boxShadow: '0 8px 24px rgba(80,50,10,.10)' },
   labelStyle: { fontWeight: 600 },
 }

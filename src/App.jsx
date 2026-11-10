@@ -12,16 +12,16 @@ import Produtos from './paginas/Produtos'
 const Importar = lazy(() => import('./paginas/Importar'))
 
 const PAGINAS = [
-  { id: 'visao', nome: 'Visão geral', ico: '◎', C: Visao },
-  { id: 'vendas', nome: 'Vendas', ico: '▤', C: Vendas },
-  { id: 'pagamentos', nome: 'Cartões e pagamentos', ico: '▭', C: Pagamentos },
-  { id: 'itens', nome: 'Itens vendidos', ico: '❖', C: Itens },
-  { id: 'equipe', nome: 'Garçons e operadores', ico: '☺', C: Equipe },
-  { id: 'cmv', nome: 'CMV e insumos', ico: '%', C: Cmv },
-  { id: 'compras', nome: 'Compras', ico: '⬇', C: Compras },
-  { id: 'estoque', nome: 'Estoque', ico: '▦', C: Estoque, semPeriodo: true },
-  { id: 'produtos', nome: 'Produtos e fichas', ico: '☰', C: Produtos, semPeriodo: true },
-  { id: 'importar', nome: 'Importar arquivos', ico: '⇪', C: Importar, semPeriodo: true },
+  { id: 'visao', sec: 'Principal', nome: 'Visão geral', ico: '◎', C: Visao, t: 'Visão <em>geral</em>', sub: 'Faturamento, canais e pagamentos num lugar só' },
+  { id: 'vendas', sec: 'Principal', nome: 'Vendas', ico: '▤', C: Vendas, t: 'Vendas <em>dia a dia</em>', sub: 'Cada dia de operação, do salão ao delivery' },
+  { id: 'pagamentos', sec: 'Principal', nome: 'Cartões e pagamentos', ico: '▭', C: Pagamentos, t: 'Cartões e <em>pagamentos</em>', sub: 'Formas, bandeiras e maquininhas' },
+  { id: 'itens', sec: 'Principal', nome: 'Itens vendidos', ico: '❖', C: Itens, t: 'Itens <em>vendidos</em>', sub: 'Ranking, cozinha e horários de pedido' },
+  { id: 'equipe', sec: 'Principal', nome: 'Garçons e operadores', ico: '☺', C: Equipe, t: 'Equipe', sub: 'Quem mais vende, sem repetir o valor da mesa' },
+  { id: 'cmv', sec: 'Custos', nome: 'CMV e insumos', ico: '%', C: Cmv, t: 'CMV e <em>insumos</em>', sub: 'Quanto custou o que foi vendido' },
+  { id: 'compras', sec: 'Custos', nome: 'Compras', ico: '↓', C: Compras, t: 'Compras', sub: 'Por fornecedor e por produto' },
+  { id: 'estoque', sec: 'Custos', nome: 'Estoque', ico: '▦', C: Estoque, semPeriodo: true, t: 'Estoque', sub: 'Fechamentos e contagens' },
+  { id: 'produtos', sec: 'Cadastros', nome: 'Produtos e fichas', ico: '☰', C: Produtos, semPeriodo: true, t: 'Produtos e <em>fichas</em>', sub: 'Cardápio, cozinha e custo de cada prato' },
+  { id: 'importar', sec: 'Cadastros', nome: 'Importar arquivos', ico: '⇪', C: Importar, semPeriodo: true, t: 'Importar <em>arquivos</em>', sub: 'Relatórios da TOTVS e planilhas de contagem' },
 ]
 
 export default function App() {
@@ -58,7 +58,8 @@ function Login() {
   return (
     <div className="login">
       <form onSubmit={enviar} className="login-box">
-        <div className="marca">🍣 Dash ChefWeb</div>
+        <div className="marca" style={{ padding: 0 }}><span className="logo">鮨</span>Dash ChefWeb</div>
+        <h1>{modo === 'entrar' ? <>Bem-<em>vinda</em></> : <>Primeiro <em>acesso</em></>}</h1>
         <p className="muted">{modo === 'entrar' ? 'Entre com seu e-mail e senha.' : 'Crie sua senha (mínimo 6 caracteres).'}</p>
         <input type="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <input type="password" placeholder="Senha" value={senha} onChange={(e) => setSenha(e.target.value)} required minLength={6} />
@@ -110,7 +111,7 @@ function Painel({ email }) {
   if (permitido === false)
     return (
       <div className="login"><div className="login-box">
-        <div className="marca">🍣 Dash ChefWeb</div>
+        <div className="marca" style={{ padding: 0 }}><span className="logo">鮨</span>Dash ChefWeb</div>
         <p>O e-mail <b>{email}</b> ainda não tem acesso à dash.</p>
         <p className="muted">Peça para a administração incluir seu e-mail na lista de usuários permitidos.</p>
         <button className="btn" onClick={() => sb.auth.signOut()}>Sair</button>
@@ -123,24 +124,36 @@ function Painel({ email }) {
   return (
     <div className="app">
       <aside className={'lateral ' + (menuAberto ? 'aberto' : '')}>
-        <div className="marca">🍣 Dash ChefWeb</div>
+        <div className="marca"><span className="logo">鮨</span>Dash ChefWeb</div>
         <nav>
-          {PAGINAS.map((p) => (
-            <button key={p.id} className={pag === p.id ? 'on' : ''} onClick={() => { setPag(p.id); setMenuAberto(false) }}>
-              <span className="ico">{p.ico}</span>{p.nome}
-            </button>
+          {['Principal', 'Custos', 'Cadastros'].map((sec) => (
+            <div key={sec} style={{ display: 'contents' }}>
+              <div className="nav-sec">{sec}</div>
+              {PAGINAS.filter((p) => p.sec === sec).map((p) => (
+                <button key={p.id} className={pag === p.id ? 'on' : ''} onClick={() => { setPag(p.id); setMenuAberto(false) }}>
+                  <span className="ico">{p.ico}</span>{p.nome}
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
-        <div className="rodape-lat">
-          <div className="muted pequeno">{email}</div>
-          <button className="link" onClick={() => sb.auth.signOut()}>Sair</button>
+        <div className="usuario">
+          <div className="avatar">{email.slice(0, 2).toUpperCase()}</div>
+          <div className="info">
+            <div style={{ fontWeight: 600, fontSize: 13 }}>{(lojas.find((l) => l.id === loja) || {}).nome || ''}</div>
+            <div className="muted pequeno">{email}</div>
+          </div>
+          <button className="link" onClick={() => sb.auth.signOut()} title="Sair">Sair</button>
         </div>
       </aside>
 
       <main>
         <div className="topo">
           <button className="hamb" onClick={() => setMenuAberto(!menuAberto)}>☰</button>
-          <h1>{P.nome}</h1>
+          <div className="titulo">
+            <h1 dangerouslySetInnerHTML={{ __html: P.t }} />
+            <p>{P.sub}</p>
+          </div>
           <div className="filtros">
             <select value={loja} onChange={(e) => setLoja(Number(e.target.value))}>
               {lojas.map((l) => <option key={l.id} value={l.id}>{l.nome}</option>)}
@@ -167,10 +180,15 @@ function Painel({ email }) {
           </div>
         )}
         {!P.semPeriodo && !ultimo && permitido && (
-          <div className="aviso">Ainda não há vendas desta loja no banco. Vá em <b>Importar arquivos</b> para carregar o histórico.</div>
+          <div className="hero" style={{ minHeight: 0, marginTop: 12 }}>
+            <div className="selo"><span>Primeiro passo</span></div>
+            <h2>Ainda não há <em>vendas</em> desta loja</h2>
+            <p>O banco está vazio. Suba o arquivo Historico_Reorganizado.xlsx para carregar março a novembro.</p>
+            <div style={{ marginTop: 16 }}><button className="btn prim" onClick={() => setPag('importar')}>Ir para Importar arquivos →</button></div>
+          </div>
         )}
         <div className="conteudo">
-          {(P.semPeriodo || periodo) && (
+          {(P.semPeriodo || (periodo && ultimo)) && (
             <Suspense fallback={<div className="carregando">Carregando…</div>}>
               <P.C key={P.id + loja} loja={loja} ini={periodo?.ini} fim={periodo?.fim} irPara={setPag} />
             </Suspense>

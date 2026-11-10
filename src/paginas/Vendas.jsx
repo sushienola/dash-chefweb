@@ -36,11 +36,11 @@ export default function Vendas({ loja, ini, fim }) {
           <Card titulo="Média de faturamento por dia da semana">
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={calc.sem}>
-                <CartesianGrid vertical={false} stroke="#eef0f4" />
+                <CartesianGrid vertical={false} stroke="rgba(120,84,40,.10)" />
                 <XAxis dataKey="dia" fontSize={12} />
                 <YAxis tickFormatter={kR} fontSize={11} width={70} />
                 <Tooltip {...tooltipStyle} formatter={(v) => R(v)} labelFormatter={(s, p) => s + ' · ' + (p?.[0]?.payload?.n || 0) + ' dias'} />
-                <Bar dataKey="media" name="Média" fill="#2f6fdf" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="media" name="Média" fill="#c9b2ef" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </Card>

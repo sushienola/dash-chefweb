@@ -57,7 +57,7 @@ export default function Pagamentos({ loja, ini, fim }) {
           <Card titulo="Recebido por dia">
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={calc.porDia}>
-                <CartesianGrid vertical={false} stroke="#eef0f4" />
+                <CartesianGrid vertical={false} stroke="rgba(120,84,40,.10)" />
                 <XAxis dataKey="dia" tickFormatter={brCurto} fontSize={11} />
                 <YAxis tickFormatter={kR} fontSize={11} width={70} />
                 <Tooltip {...tooltipStyle} formatter={(v) => R(v)} labelFormatter={brCurto} />

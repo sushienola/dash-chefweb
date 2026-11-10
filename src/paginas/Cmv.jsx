@@ -57,16 +57,16 @@ function Teorico({ loja, ini, fim }) {
           <Card titulo="Custo teórico × faturamento por dia">
             <ResponsiveContainer width="100%" height={280}>
               <ComposedChart data={calc.dia}>
-                <CartesianGrid vertical={false} stroke="#eef0f4" />
+                <CartesianGrid vertical={false} stroke="rgba(120,84,40,.10)" />
                 <XAxis dataKey="dia" tickFormatter={brCurto} fontSize={11} />
                 <YAxis yAxisId="v" tickFormatter={kR} fontSize={11} width={70} />
                 <YAxis yAxisId="p" orientation="right" tickFormatter={(v) => v.toFixed(0) + '%'} fontSize={11} width={45} />
                 <Tooltip {...tooltipStyle} labelFormatter={brCurto}
                   formatter={(v, n) => (n === 'CMV %' ? (v == null ? '—' : v.toFixed(1) + '%') : R(v))} />
                 <Legend />
-                <Bar yAxisId="v" dataKey="faturamento_com_ficha" name="Faturamento c/ ficha" fill="#cfdcf6" />
-                <Bar yAxisId="v" dataKey="custo_teorico" name="Custo teórico" fill="#e0702e" />
-                <Line yAxisId="p" dataKey="pct" name="CMV %" stroke="#c2417a" dot={false} strokeWidth={2} />
+                <Bar yAxisId="v" dataKey="faturamento_com_ficha" name="Faturamento c/ ficha" fill="#e6d8fb" />
+                <Bar yAxisId="v" dataKey="custo_teorico" name="Custo teórico" fill="#e8743b" />
+                <Line yAxisId="p" dataKey="pct" name="CMV %" stroke="#8e5bd6" dot={false} strokeWidth={2} />
               </ComposedChart>
             </ResponsiveContainer>
           </Card>

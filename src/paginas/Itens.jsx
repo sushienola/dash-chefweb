@@ -71,24 +71,24 @@ export default function Itens({ loja, ini, fim }) {
             <Card titulo="Itens por dia (cozinha × outros)">
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={calc.porDia}>
-                  <CartesianGrid vertical={false} stroke="#eef0f4" />
+                  <CartesianGrid vertical={false} stroke="rgba(120,84,40,.10)" />
                   <XAxis dataKey="dia" tickFormatter={brCurto} fontSize={11} />
                   <YAxis fontSize={11} width={50} />
                   <Tooltip {...tooltipStyle} formatter={(v) => N(v)} labelFormatter={brCurto} />
                   <Legend />
-                  <Bar dataKey="Cozinha" stackId="a" fill="#e0702e" />
-                  <Bar dataKey="Outros" stackId="a" fill="#2f6fdf" />
+                  <Bar dataKey="Cozinha" stackId="a" fill="#e8743b" />
+                  <Bar dataKey="Outros" stackId="a" fill="#c9b2ef" />
                 </BarChart>
               </ResponsiveContainer>
             </Card>
             <Card titulo="Itens por horário do pedido">
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={calc.hora}>
-                  <CartesianGrid vertical={false} stroke="#eef0f4" />
+                  <CartesianGrid vertical={false} stroke="rgba(120,84,40,.10)" />
                   <XAxis dataKey="h" fontSize={11} />
                   <YAxis fontSize={11} width={50} />
                   <Tooltip {...tooltipStyle} formatter={(v) => N(v)} />
-                  <Bar dataKey="qtd" name="Itens" fill="#2a9d6f" radius={[3, 3, 0, 0]} />
+                  <Bar dataKey="qtd" name="Itens" fill="#c9b2ef" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </Card>
@@ -98,11 +98,11 @@ export default function Itens({ loja, ini, fim }) {
               <Estado st={det}>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={det.dados || []}>
-                    <CartesianGrid vertical={false} stroke="#eef0f4" />
+                    <CartesianGrid vertical={false} stroke="rgba(120,84,40,.10)" />
                     <XAxis dataKey="dia" tickFormatter={brCurto} fontSize={11} />
                     <YAxis fontSize={11} width={50} />
                     <Tooltip {...tooltipStyle} formatter={(v, n) => (n === 'valor' ? R(v) : N(v))} labelFormatter={brCurto} />
-                    <Bar dataKey="qtd" name="Quantidade" fill="#7a5bd1" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="qtd" name="Quantidade" fill="#8e5bd6" radius={[6, 6, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </Estado>

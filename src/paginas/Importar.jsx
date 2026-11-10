@@ -63,9 +63,12 @@ export default function Importar({ loja }) {
 
   return (
     <>
-      <Card titulo="Subir arquivo">
-        <p className="muted">Escolha o arquivo exportado da TOTVS ou a planilha de contagem. O tipo é reconhecido automaticamente.</p>
-        <input type="file" accept=".xlsx,.xls" onChange={escolher} disabled={rodando} />
+      <Card titulo="Subir arquivo" ico="⇪">
+        <label className="arquivo">
+          <input type="file" accept=".xlsx,.xls" onChange={escolher} disabled={rodando} />
+          <span className="serif" style={{ fontSize: 26 }}>{arq ? arq.name : <>Escolher <em>arquivo</em></>}</span>
+          <span className="muted">Relatório da TOTVS ou planilha de contagem (.xlsx). O tipo é reconhecido sozinho.</span>
+        </label>
         {lendo && <div className="carregando">Lendo o arquivo… (arquivos grandes podem levar alguns segundos)</div>}
         {det && (
           <div className="det">
@@ -109,11 +112,11 @@ export default function Importar({ loja }) {
         {rodando && <Aviso>Não feche esta página até terminar.</Aviso>}
       </Card>
 
-      <Card titulo="Arquivos aceitos">
+      <Card titulo="Arquivos aceitos" ico="☰">
         <ul className="lista-tipos">{TIPOS.map(([t, d]) => <li key={t}><b>{t}</b> — {d}</li>)}</ul>
       </Card>
 
-      <Card titulo="Últimas importações">
+      <Card titulo="Últimas importações" ico="↺">
         <Estado st={hist}>
           <Tabela colunas={[
             { k: 'feito_em', t: 'Quando', f: (v) => new Date(v).toLocaleString('pt-BR') },
