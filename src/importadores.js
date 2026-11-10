@@ -247,6 +247,7 @@ async function importarR024(wb, det, loja, arquivo, progresso, log) {
   }).filter((p) => (vistos.has(p.codigo) ? false : vistos.add(p.codigo)))
   log(P.length + ' produtos encontrados')
   await enviar('produtos', P, { upsert: true, onConflict: 'loja,codigo', progresso, rotulo: 'Produtos' })
+  await sb.rpc('recalcular_custos', { p_loja: loja })   // aplica as fichas já importadas aos produtos
   await registrar('r024', arquivo, loja, P.length, '')
   return `${P.length} produtos atualizados. Ajustes manuais de "cozinha" foram mantidos.`
 }
@@ -310,6 +311,7 @@ async function importarR025(wb, det, loja, arquivo, progresso, log) {
   const prods = await selectAll('produtos', (q) => q.eq('loja', loja))
   const custos = prods.map((p) => ({ loja, codigo: p.codigo, custo_ficha: lote.has(p.codigo) ? +lote.get(p.codigo).toFixed(4) : null }))
   await enviar('produtos', custos, { upsert: true, onConflict: 'loja,codigo', progresso, rotulo: 'Custo dos produtos' })
+  await sb.rpc('recalcular_custos', { p_loja: loja })
   await registrar('r025', arquivo, loja, F.length, lote.size + ' compostos')
   return `${lote.size} fichas importadas e custo atualizado em ${custos.filter((c) => c.custo_ficha != null).length} produtos.`
 }
