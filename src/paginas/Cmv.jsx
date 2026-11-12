@@ -46,13 +46,11 @@ function Teorico({ loja, ini, fim }) {
         <>
           <Aviso>
             CMV teórico = quanto <b>deveria</b> ter custado o que foi vendido, pelas fichas técnicas (custo atual de cada insumo).
-            Calculado só sobre os produtos que têm ficha.
           </Aviso>
           <div className="kpis">
-            <Kpi titulo={<>CMV <span className="tag">teórico</span></>} valor={P(calc.fatF ? calc.custo / calc.fatF : null)} sub="sobre itens com ficha" />
+            <Kpi titulo={<>CMV <span className="tag">teórico</span></>} valor={P(calc.fatF ? calc.custo / calc.fatF : null)} />
             <Kpi titulo={<>Custo <span className="tag">teórico</span></>} valor={R0(calc.custo)} />
-            <Kpi titulo="Faturamento com ficha" valor={R0(calc.fatF)} sub={P(calc.cobertura) + ' do total'} />
-            <Kpi titulo="Faturamento sem ficha" valor={R0(calc.fat - calc.fatF)} sub={calc.sem.length + ' produtos'} />
+            <Kpi titulo="Faturamento considerado" valor={R0(calc.fatF)} />
           </div>
           <Card titulo="Custo teórico × faturamento por dia">
             <ResponsiveContainer width="100%" height={280}>
@@ -82,14 +80,15 @@ function Teorico({ loja, ini, fim }) {
               { k: 'margem', t: 'Margem', num: true, f: R0 },
             ]} linhas={calc.pratos} max={300} />
           </Card>
-          <Card titulo="Vendidos sem ficha técnica (maiores faturamentos)">
+          <details className="discreto">
+            <summary>outros produtos ({calc.sem.length})</summary>
             <Tabela colunas={[
               { k: 'codigo', t: 'Cód.' },
               { k: 'produto', t: 'Produto' },
               { k: 'subgrupo', t: 'Subgrupo' },
               { k: 'valor', t: 'Vendido', num: true, f: R0 },
             ]} linhas={calc.sem} max={50} />
-          </Card>
+          </details>
         </>
       )}
     </Estado>

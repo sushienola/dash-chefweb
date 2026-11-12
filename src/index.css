@@ -323,3 +323,8 @@ main { flex: 1; min-width: 0; padding: 8px 6px 40px; }
   .app { padding: 0; display: block; }
   .card, .kpi { box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; }
 }
+
+details.discreto { margin-top: 4px; }
+details.discreto > summary { cursor: pointer; font-size: 11px; font-style: italic; color: #b3a594; list-style: none; text-align: right; }
+details.discreto > summary::-webkit-details-marker { display: none; }
+details.discreto[open] > summary { margin-bottom: 8px; }

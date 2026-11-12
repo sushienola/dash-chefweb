@@ -46,14 +46,13 @@ export default function Produtos({ loja }) {
           <div className="kpis">
             <Kpi titulo="Produtos" valor={calc.todos.length} />
             <Kpi titulo="Da cozinha" valor={calc.todos.filter((p) => p.coz).length} />
-            <Kpi titulo="Ativos sem ficha" valor={calc.todos.filter((p) => p.ativo && p.custo_ficha == null).length} />
             <Kpi titulo="Para conferir" valor={calc.todos.filter((p) => p.observacao).length} />
           </div>
           <div className="barra-filtros">
             <select value={filtro} onChange={(e) => setFiltro(e.target.value)}>
               <option value="todos">Todos</option>
               <option value="coz">Só cozinha</option>
-              <option value="semficha">Ativos sem ficha técnica</option>
+              <option value="semficha">Sem custo cadastrado</option>
               <option value="conferir">Para conferir</option>
               <option value="manual">Ajustados manualmente</option>
             </select>

@@ -148,9 +148,8 @@ export default function Fechamento({ loja }) {
 
             <Card titulo={<>CMV pelas fichas <Teorico /></>} ico="%">
               <div className="kpis">
-                <Kpi titulo="CMV teórico" valor={P(f.cmvTeorico)} sub="sobre itens com ficha" />
+                <Kpi titulo="CMV teórico" valor={P(f.cmvTeorico)} />
                 <Kpi titulo="Custo teórico" valor={R0(f.custoT)} />
-                <Kpi titulo="Cobertura das fichas" valor={P(f.cobertura)} sub="do faturamento de itens" />
               </div>
             </Card>
 
