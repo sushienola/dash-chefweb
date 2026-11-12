@@ -7,10 +7,10 @@ import { useDados, Estado, Card, Tabela, Kpi, Abas, Aviso } from '../ui'
 //  popular  = participação na seção >= 70% da participação média (1/n)
 //  rentável = margem unitária (preço médio − custo da ficha) >= média ponderada da seção
 export const CLASSE = {
-  estrela: { nome: 'Destaque', cor: '#3d8f5f', dica: 'vende bem e tem boa margem' },
-  burro: { nome: 'Rever custo', cor: '#d9a43a', dica: 'vende bem, margem abaixo da média' },
-  enigma: { nome: 'Potencial', cor: '#8e5bd6', dica: 'boa margem, vende pouco' },
-  cao: { nome: 'Baixo desempenho', cor: '#c94a3d', dica: 'vende pouco, margem abaixo da média' },
+  estrela: { nome: 'Destaque', cor: '#3d8f5f', dica: 'vende bem e tem boa margem: manter em evidência no cardápio' },
+  burro: { nome: 'Rever custo', cor: '#d9a43a', dica: 'vende bem, mas a margem está abaixo da média: revisar ficha, porção ou preço' },
+  enigma: { nome: 'Potencial', cor: '#8e5bd6', dica: 'boa margem, mas vende pouco: dar mais visibilidade e pedir para a equipe sugerir' },
+  cao: { nome: 'Baixo desempenho', cor: '#c94a3d', dica: 'vende pouco e a margem está abaixo da média: avaliar se continua no cardápio' },
   pop: { nome: 'Vende bem', cor: '#e0c27a', dica: 'sem ficha para medir margem' },
   fraco: { nome: 'Pouca saída', cor: '#d9a3a0', dica: 'sem ficha para medir margem' },
   zero: { nome: 'Sem venda', cor: '#9a8f82', dica: 'nenhuma venda no período' },
@@ -301,7 +301,7 @@ function Fora({ fora }) {
 function Legenda() {
   return (
     <Aviso>
-      Leitura comparada com a média da própria seção. Margem teórica, pelo custo da ficha.
+      Leitura comparada com a média da própria seção: {Object.values(CLASSE).slice(0, 4).map((c) => `${c.nome}, ${c.dica}`).join(' · ')}. Margem teórica, pelo custo da ficha.
     </Aviso>
   )
 }
