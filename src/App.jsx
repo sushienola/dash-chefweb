@@ -5,6 +5,7 @@ import Visao from './paginas/Visao'
 import Vendas from './paginas/Vendas'
 import Pagamentos from './paginas/Pagamentos'
 import Itens from './paginas/Itens'
+import Pratos from './paginas/Pratos'
 import Equipe from './paginas/Equipe'
 import Cmv from './paginas/Cmv'
 import Compras from './paginas/Compras'
@@ -19,6 +20,7 @@ const PAGINAS = [
   { id: 'vendas', sec: 'Principal', nome: 'Vendas', ico: '▤', C: Vendas, t: 'Vendas <em>dia a dia</em>', sub: 'Cada dia de operação, do salão ao delivery' },
   { id: 'pagamentos', sec: 'Principal', nome: 'Cartões e pagamentos', ico: '▭', C: Pagamentos, t: 'Cartões e <em>pagamentos</em>', sub: 'Formas, bandeiras e maquininhas' },
   { id: 'itens', sec: 'Principal', nome: 'Itens vendidos', ico: '❖', C: Itens, t: 'Itens <em>vendidos</em>', sub: 'Ranking, cozinha e horários de pedido' },
+  { id: 'pratos', sec: 'Principal', nome: 'Pratos ao longo do tempo', ico: '↗', C: Pratos, t: 'Pratos ao longo <em>do tempo</em>', sub: 'Como cada prato tem saído, dia a dia, semana a semana ou mês a mês' },
   { id: 'equipe', sec: 'Principal', nome: 'Garçons e operadores', ico: '☺', C: Equipe, t: 'Equipe', sub: 'Quem mais vende, sem repetir o valor da mesa' },
   { id: 'cmv', sec: 'Custos', nome: 'CMV e insumos', ico: '%', C: Cmv, t: 'CMV e <em>insumos</em>', sub: 'Quanto custou o que foi vendido' },
   { id: 'compras', sec: 'Custos', nome: 'Compras', ico: '↓', C: Compras, t: 'Compras', sub: 'Por fornecedor e por produto' },

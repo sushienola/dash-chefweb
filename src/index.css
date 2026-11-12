@@ -154,7 +154,7 @@ main { flex: 1; min-width: 0; padding: 8px 6px 40px; }
 .link { background: none; border: 0; color: var(--roxo); cursor: pointer; padding: 2px 0; font-weight: 500; }
 .chip { border: 1px solid var(--borda-forte); background: var(--papel-2); border-radius: 999px; padding: 3px 11px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--muted); }
 .chip.on { background: #fde3d2; border-color: #f2b893; color: #a14513; }
-.tag { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 600; background: var(--roxo-claro); color: #5b2fa5; }
+.tag { white-space: nowrap; display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 11.5px; font-weight: 600; background: var(--roxo-claro); color: #5b2fa5; }
 .tag.laranja { background: #fde3d2; color: #a14513; }
 .tag.verde { background: #dff3c4; color: #36540f; }
 
