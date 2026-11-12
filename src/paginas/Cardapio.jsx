@@ -7,12 +7,12 @@ import { useDados, Estado, Card, Tabela, Kpi, Abas, Aviso } from '../ui'
 //  popular  = participação na seção >= 70% da participação média (1/n)
 //  rentável = margem unitária (preço médio − custo da ficha) >= média ponderada da seção
 export const CLASSE = {
-  estrela: { nome: 'Estrela', cor: '#3d8f5f', dica: 'vende muito e dá boa margem: manter em destaque' },
-  burro: { nome: 'Burro de carga', cor: '#d9a43a', dica: 'vende muito, margem baixa: rever custo ou preço' },
-  enigma: { nome: 'Quebra-cabeça', cor: '#8e5bd6', dica: 'boa margem, vende pouco: divulgar, garçom indicar' },
-  cao: { nome: 'Cão', cor: '#c94a3d', dica: 'vende pouco e margem baixa: candidato a sair' },
-  pop: { nome: 'Popular', cor: '#e0c27a', dica: 'vende bem (sem custo de ficha para medir margem)' },
-  fraco: { nome: 'Pouca saída', cor: '#d9a3a0', dica: 'vende pouco (sem custo de ficha para medir margem)' },
+  estrela: { nome: 'Destaque', cor: '#3d8f5f', dica: 'vende bem e tem boa margem' },
+  burro: { nome: 'Rever custo', cor: '#d9a43a', dica: 'vende bem, margem abaixo da média' },
+  enigma: { nome: 'Potencial', cor: '#8e5bd6', dica: 'boa margem, vende pouco' },
+  cao: { nome: 'Baixo desempenho', cor: '#c94a3d', dica: 'vende pouco, margem abaixo da média' },
+  pop: { nome: 'Vende bem', cor: '#e0c27a', dica: 'sem ficha para medir margem' },
+  fraco: { nome: 'Pouca saída', cor: '#d9a3a0', dica: 'sem ficha para medir margem' },
   zero: { nome: 'Sem venda', cor: '#9a8f82', dica: 'nenhuma venda no período' },
 }
 const Selo = ({ c }) => (c ? <span className="tag" style={{ background: CLASSE[c].cor + '2a', color: '#2a2118' }} title={CLASSE[c].dica}>{CLASSE[c].nome}</span> : null)
@@ -301,7 +301,7 @@ function Fora({ fora }) {
 function Legenda() {
   return (
     <Aviso>
-      Leitura por seção: {Object.values(CLASSE).slice(0, 4).map((c) => `${c.nome} (${c.dica})`).join(' · ')}. Margem <em>teórica</em>, pelo custo da ficha.
+      Leitura comparada com a média da própria seção. Margem teórica, pelo custo da ficha.
     </Aviso>
   )
 }
