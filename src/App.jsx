@@ -6,6 +6,7 @@ import Vendas from './paginas/Vendas'
 import Pagamentos from './paginas/Pagamentos'
 import Itens from './paginas/Itens'
 import Pratos from './paginas/Pratos'
+import Cardapio from './paginas/Cardapio'
 import Equipe from './paginas/Equipe'
 import Cmv from './paginas/Cmv'
 import Compras from './paginas/Compras'
@@ -18,6 +19,7 @@ const Importar = lazy(() => import('./paginas/Importar'))
 const PAGINAS = [
   { id: 'visao', sec: 'Principal', nome: 'Visão geral', ico: '◎', C: Visao, t: 'Visão <em>geral</em>', sub: 'Faturamento, canais e pagamentos num lugar só' },
   { id: 'vendas', sec: 'Principal', nome: 'Vendas', ico: '▤', C: Vendas, t: 'Vendas <em>dia a dia</em>', sub: 'Cada dia de operação, do salão ao delivery' },
+  { id: 'cardapio', sec: 'Principal', nome: 'Monitor do cardápio', ico: '✦', C: Cardapio, t: 'Monitor do <em>cardápio</em>', sub: 'O que mais sai, o que está parado e como cada seção se comporta' },
   { id: 'pagamentos', sec: 'Principal', nome: 'Cartões e pagamentos', ico: '▭', C: Pagamentos, t: 'Cartões e <em>pagamentos</em>', sub: 'Formas, bandeiras e maquininhas' },
   { id: 'itens', sec: 'Principal', nome: 'Itens vendidos', ico: '❖', C: Itens, t: 'Itens <em>vendidos</em>', sub: 'Ranking, cozinha e horários de pedido' },
   { id: 'pratos', sec: 'Principal', nome: 'Pratos ao longo do tempo', ico: '↗', C: Pratos, t: 'Pratos ao longo <em>do tempo</em>', sub: 'Como cada prato tem saído, dia a dia, semana a semana ou mês a mês' },
