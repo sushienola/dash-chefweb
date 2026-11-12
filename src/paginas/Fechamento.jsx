@@ -71,7 +71,7 @@ export default function Fechamento({ loja }) {
 
   const st = useDados(() => carregar(loja, mes), [loja, mes])
   const salvos = useDados(async () => {
-    const { data, error } = await sb.from('fechamentos').select('id, mes, gravado_em, dados').eq('loja', loja).order('gravado_em', { ascending: false }).limit(24)
+    const { data, error } = await sb.from('adm_fechamentos').select('id, mes, gravado_em, dados').eq('loja', loja).order('gravado_em', { ascending: false }).limit(24)
     if (error) throw error
     return data
   }, [loja, versao])
@@ -83,7 +83,7 @@ export default function Fechamento({ loja }) {
 
   async function gravar() {
     setMsg(null)
-    const { error } = await sb.from('fechamentos').insert({ loja, mes, dados: f })
+    const { error } = await sb.from('adm_fechamentos').insert({ loja, mes, dados: f })
     if (error) setMsg({ erro: true, t: 'Erro ao salvar: ' + error.message })
     else { setMsg({ t: 'Resumo de ' + nomeMes(mes) + ' salvo.' }); setVersao((v) => v + 1) }
   }

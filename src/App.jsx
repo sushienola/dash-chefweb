@@ -47,9 +47,9 @@ function Painel() {
   const [temContas, setTemContas] = useState(false)
 
   useEffect(() => {
-    sb.from('lojas').select('*').order('id').then(({ data }) => setLojas(data || []))
+    sb.from('adm_lojas').select('*').order('id').then(({ data }) => setLojas(data || []))
     // contas a pagar só aparece no menu quando a TOTVS liberar a API e houver dados
-    sb.from('contas_pagar').select('numero_controle', { count: 'exact', head: true }).then(({ count }) => setTemContas((count || 0) > 0))
+    sb.from('adm_contas_pagar').select('numero_controle', { count: 'exact', head: true }).then(({ count }) => setTemContas((count || 0) > 0))
   }, [])
 
   useEffect(() => {

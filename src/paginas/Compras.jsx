@@ -8,7 +8,7 @@ export default function Compras({ loja, ini, fim }) {
   const [busca, setBusca] = useState('')
   const [dia, setDia] = useState(null)
   const [prod, setProd] = useState(null)
-  const st = useDados(() => selectAll('compras', (q) => q.eq('loja', loja).gte('data', ini).lte('data', fim).order('data')), [loja, ini, fim])
+  const st = useDados(() => selectAll('adm_compras', (q) => q.eq('loja', loja).gte('data', ini).lte('data', fim).order('data')), [loja, ini, fim])
 
   const calc = useMemo(() => {
     if (!st.dados) return null

@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 // A chave "publishable" pode ficar no site: quem protege os dados é o login + RLS do banco.
-const URL = (import.meta.env || {}).VITE_SUPABASE_URL || 'https://mueekpzpmcehgxqzmotn.supabase.co'
-const KEY = (import.meta.env || {}).VITE_SUPABASE_KEY || 'sb_publishable_ghvkqR97r2pZWugR-wXhFw_n-G-85iQ'
+const URL = (import.meta.env || {}).VITE_SUPABASE_URL || 'https://qnoubpzzlvteezfsvpmi.supabase.co'
+const KEY = (import.meta.env || {}).VITE_SUPABASE_KEY || 'sb_publishable_fmOhjHKKriej3N3Vf9cVVA_Scw4606I'
 export const sb = createClient(URL, KEY)
 
 // ── busca paginada (o Supabase devolve no máximo 1000 linhas por vez) ──

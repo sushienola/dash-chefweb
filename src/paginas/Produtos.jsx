@@ -9,7 +9,7 @@ export default function Produtos({ loja }) {
   const [filtro, setFiltro] = useState('todos')
   const [busca, setBusca] = useState('')
   const [salvando, setSalvando] = useState(null)
-  const st = useDados(() => selectAll('produtos', (q) => q.eq('loja', loja).order('produto')), [loja, versao])
+  const st = useDados(() => selectAll('adm_produtos', (q) => q.eq('loja', loja).order('produto')), [loja, versao])
 
   const calc = useMemo(() => {
     if (!st.dados) return null
@@ -30,7 +30,7 @@ export default function Produtos({ loja }) {
   async function esconder(p) {
     setSalvando(p.codigo)
     const novo = !p.oculto
-    const { error } = await sb.from('produtos').update({ ocultar: novo === p.ocultoAuto ? null : novo }).eq('loja', loja).eq('codigo', p.codigo)
+    const { error } = await sb.from('adm_produtos').update({ ocultar: novo === p.ocultoAuto ? null : novo }).eq('loja', loja).eq('codigo', p.codigo)
     setSalvando(null)
     if (error) alert('Erro ao salvar: ' + error.message)
     else setVersao((v) => v + 1)
@@ -41,7 +41,7 @@ export default function Produtos({ loja }) {
     const novo = !p.coz
     // se voltar ao que o ChefWeb diz, limpa o ajuste manual
     const manual = novo === p.cozinha_auto ? null : novo
-    const { error } = await sb.from('produtos').update({ cozinha_manual: manual, observacao: null }).eq('loja', loja).eq('codigo', p.codigo)
+    const { error } = await sb.from('adm_produtos').update({ cozinha_manual: manual, observacao: null }).eq('loja', loja).eq('codigo', p.codigo)
     setSalvando(null)
     if (error) alert('Erro ao salvar: ' + error.message)
     else setVersao((v) => v + 1)

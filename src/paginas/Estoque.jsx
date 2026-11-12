@@ -9,7 +9,7 @@ export default function Estoque({ loja }) {
   const [busca, setBusca] = useState('')
   useEffect(() => { setRef(refs.dados?.[0]?.referencia || '') }, [refs.dados])
 
-  const st = useDados(async () => (ref ? selectAll('contagens', (q) => q.eq('loja', loja).eq('referencia', ref)) : []), [loja, ref])
+  const st = useDados(async () => (ref ? selectAll('adm_contagens', (q) => q.eq('loja', loja).eq('referencia', ref)) : []), [loja, ref])
 
   const calc = useMemo(() => {
     if (!st.dados) return null

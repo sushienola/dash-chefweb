@@ -25,8 +25,8 @@ var CONFIG = {
   composicoes:   true,
 
   lojaDash:      1,     // 1 = SUSHI LEBLON, 2 = NOLA (número da loja na dash)
-  supabaseUrl:   "https://mueekpzpmcehgxqzmotn.supabase.co",
-  supabaseChave: "sb_publishable_ghvkqR97r2pZWugR-wXhFw_n-G-85iQ",   // chave pública (pode ficar no código)
+  supabaseUrl:   "https://qnoubpzzlvteezfsvpmi.supabase.co",
+  supabaseChave: "sb_publishable_fmOhjHKKriej3N3Vf9cVVA_Scw4606I",   // chave pública (pode ficar no código)
   tokenIntegracao: "COLOQUE_O_TOKEN_DE_INTEGRACAO",                                      // senha de integração deste script (não compartilhe)
 
   horarioInicio: 11,    // janela da operação: 11h do dia...
@@ -76,7 +76,8 @@ function onOpen() {
 
 function buscarUltimosDias() {
   try {
-    _alerta("✅ Concluído!\n\n" + _buscarUltimos(CONFIG.diasSync).texto);
+    var r = _buscarUltimos(CONFIG.diasSync);
+    _alerta((r.texto.indexOf("❌") >= 0 ? "⚠️ Terminou com erro:" : "✅ Concluído!") + "\n\n" + r.texto);
   } catch (e) {
     _alerta("❌ Erro:\n\n" + e.message);
   }
@@ -89,7 +90,8 @@ function menuBuscarPeriodo() {
   var r2 = ui.prompt("Data final da operação (AAAA-MM-DD)", ui.ButtonSet.OK_CANCEL);
   if (r2.getSelectedButton() !== ui.Button.OK) return;
   try {
-    ui.alert("✅ Concluído!\n\n" + buscarPeriodo(r1.getResponseText().trim(), r2.getResponseText().trim()).texto);
+    var r = buscarPeriodo(r1.getResponseText().trim(), r2.getResponseText().trim());
+    ui.alert((r.texto.indexOf("❌") >= 0 ? "⚠️ Terminou com erro:" : "✅ Concluído!") + "\n\n" + r.texto);
   } catch (e) {
     ui.alert("❌ Erro:\n\n" + e.message);
   }

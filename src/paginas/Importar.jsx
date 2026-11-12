@@ -25,7 +25,7 @@ export default function Importar({ loja }) {
   const [versao, setVersao] = useState(0)
 
   const hist = useDados(async () => {
-    const { data, error } = await sb.from('importacoes').select('*').order('feito_em', { ascending: false }).limit(30)
+    const { data, error } = await sb.from('adm_importacoes').select('*').order('feito_em', { ascending: false }).limit(30)
     if (error) throw error
     return data
   }, [versao])

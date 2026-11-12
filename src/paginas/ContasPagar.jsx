@@ -6,7 +6,7 @@ import { useDados, Estado, Card, Tabela, Kpi, Abas, Aviso, tooltipStyle } from '
 export default function ContasPagar({ loja, ini, fim }) {
   const [aba, setAba] = useState('agenda')
   const [busca, setBusca] = useState('')
-  const st = useDados(() => selectAll('contas_pagar', (q) => q.eq('loja', loja).order('data_vencimento')), [loja])
+  const st = useDados(() => selectAll('adm_contas_pagar', (q) => q.eq('loja', loja).order('data_vencimento')), [loja])
   const hoje = iso(new Date())
 
   const calc = useMemo(() => {

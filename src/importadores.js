@@ -109,7 +109,7 @@ async function apagar(tabela, filtro) {
 }
 
 async function registrar(tipo, arquivo, loja, linhas, detalhes) {
-  await sb.from('importacoes').insert({ tipo, arquivo, loja, linhas, detalhes })
+  await sb.from('adm_importacoes').insert({ tipo, arquivo, loja, linhas, detalhes })
 }
 
 // ─────────────── detecção ───────────────
@@ -181,7 +181,7 @@ async function importarHistorico(wb, loja, arquivo, progresso, log) {
     descontos: n(r.Descontos) || 0, valor_troco: n(r.ValorTroco) || 0, data_integracao: txt(r.DataIntegracao), fonte: txt(r.Fonte),
   }))
   log('Vendas: ' + V.length + ' linhas')
-  await enviar('vendas', V, { upsert: true, onConflict: 'chave_venda', ignorar: true, progresso, rotulo: 'Vendas' })
+  await enviar('adm_vendas', V, { upsert: true, onConflict: 'chave_venda', ignorar: true, progresso, rotulo: 'Vendas' })
 
   const P = tabelaPorNome(wb, 'Pagamentos', ['ChavePagto', 'ChaveVenda']).filter((r) => r.ChavePagto).map((r) => ({
     chave_pagto: txt(r.ChavePagto), chave_venda: txt(r.ChaveVenda), loja, dia: data(r.DiaOperacao), status_venda: int(r.StatusVenda),
@@ -189,7 +189,7 @@ async function importarHistorico(wb, loja, arquivo, progresso, log) {
     valor: n(r.Valor) || 0, fonte: txt(r.Fonte),
   }))
   log('Pagamentos: ' + P.length + ' linhas')
-  await enviar('pagamentos', P, { upsert: true, onConflict: 'chave_pagto', ignorar: true, progresso, rotulo: 'Pagamentos' })
+  await enviar('adm_pagamentos', P, { upsert: true, onConflict: 'chave_pagto', ignorar: true, progresso, rotulo: 'Pagamentos' })
 
   const I = tabelaPorNome(wb, 'Itens', ['ChaveItem', 'ChaveVenda']).filter((r) => r.ChaveItem).map((r) => ({
     chave_item: txt(r.ChaveItem), chave_venda: txt(r.ChaveVenda), loja, dia: data(r.DiaOperacao), canal: txt(r.Canal),
@@ -198,7 +198,7 @@ async function importarHistorico(wb, loja, arquivo, progresso, log) {
     acrescimo: n(r.Acrescimo) || 0, valor_total: n(r.ValorTotal) || 0, hora: txt(r.HoraLancamento), garcom: txt(r.Garcom),
   }))
   log('Itens: ' + I.length + ' linhas')
-  await enviar('itens', I, { upsert: true, onConflict: 'chave_item', ignorar: true, progresso, rotulo: 'Itens' })
+  await enviar('adm_itens', I, { upsert: true, onConflict: 'chave_item', ignorar: true, progresso, rotulo: 'Itens' })
 
   if (wb.SheetNames.includes('Produtos')) {
     const PR = tabelaPorNome(wb, 'Produtos', ['CodigoProduto', 'Produto']).filter((r) => int(r.CodigoProduto) != null && limpo(r.Produto)).map((r) => {
@@ -212,23 +212,23 @@ async function importarHistorico(wb, loja, arquivo, progresso, log) {
       }
     })
     log('Produtos: ' + PR.length)
-    await enviar('produtos', PR, { upsert: true, onConflict: 'loja,codigo', progresso, rotulo: 'Produtos' })
+    await enviar('adm_produtos', PR, { upsert: true, onConflict: 'loja,codigo', progresso, rotulo: 'Produtos' })
   }
   if (wb.SheetNames.includes('Fichas_Tecnicas')) {
     const F = tabelaPorNome(wb, 'Fichas_Tecnicas', ['CodigoComposto', 'CodigoInsumo']).filter((r) => int(r.CodigoComposto) != null).map((r) => ({
       loja, codigo_composto: int(r.CodigoComposto), composto: txt(r.Composto), codigo_insumo: int(r.CodigoInsumo),
       insumo: txt(r.Insumo), qtd: n(r.Qtd), un: txt(r.Un), custo: n(r.Custo), valor: n(r.Valor),
     }))
-    await apagar('fichas', (q) => q.eq('loja', loja))
-    await enviar('fichas', F, { progresso, rotulo: 'Fichas técnicas' })
+    await apagar('adm_fichas', (q) => q.eq('loja', loja))
+    await enviar('adm_fichas', F, { progresso, rotulo: 'Fichas técnicas' })
   }
   if (wb.SheetNames.includes('Fichas_Insumos')) {
     const FI = tabelaPorNome(wb, 'Fichas_Insumos', ['CodigoProduto', 'CodigoInsumo']).filter((r) => int(r.CodigoProduto) != null).map((r) => ({
       loja, codigo_produto: int(r.CodigoProduto), codigo_insumo: int(r.CodigoInsumo), insumo: txt(r.Insumo),
       qtd_por_unidade: n(r.QtdPorUnidade), un: txt(r.Un), custo_unit: n(r.CustoUnitInsumo), custo_no_prato: n(r.CustoNoPrato),
     }))
-    await apagar('fichas_insumos', (q) => q.eq('loja', loja))
-    await enviar('fichas_insumos', FI, { upsert: true, onConflict: 'loja,codigo_produto,codigo_insumo', progresso, rotulo: 'Insumos por prato' })
+    await apagar('adm_fichas_insumos', (q) => q.eq('loja', loja))
+    await enviar('adm_fichas_insumos', FI, { upsert: true, onConflict: 'loja,codigo_produto,codigo_insumo', progresso, rotulo: 'Insumos por prato' })
   }
   await registrar('historico', arquivo, loja, V.length + I.length + P.length, `${V.length} vendas, ${I.length} itens, ${P.length} pagamentos`)
   return `${V.length} vendas, ${I.length} itens e ${P.length} pagamentos importados (o que já existia foi mantido).`
@@ -246,7 +246,7 @@ async function importarR024(wb, det, loja, arquivo, progresso, log) {
     }
   }).filter((p) => (vistos.has(p.codigo) ? false : vistos.add(p.codigo)))
   log(P.length + ' produtos encontrados')
-  await enviar('produtos', P, { upsert: true, onConflict: 'loja,codigo', progresso, rotulo: 'Produtos' })
+  await enviar('adm_produtos', P, { upsert: true, onConflict: 'loja,codigo', progresso, rotulo: 'Produtos' })
   await sb.rpc('recalcular_custos', { p_loja: loja })   // aplica as fichas já importadas aos produtos
   await registrar('r024', arquivo, loja, P.length, '')
   return `${P.length} produtos atualizados. Ajustes manuais de "cozinha" foram mantidos.`
@@ -303,14 +303,14 @@ async function importarR025(wb, det, loja, arquivo, progresso, log) {
   }).filter((f) => f.codigo_composto != null)
   log(F.length + ' linhas de ficha')
   const { res, lote } = explodir(F)
-  await apagar('fichas', (q) => q.eq('loja', loja))
-  await enviar('fichas', F, { progresso, rotulo: 'Fichas técnicas' })
-  await apagar('fichas_insumos', (q) => q.eq('loja', loja))
-  await enviar('fichas_insumos', res.map((r) => ({ ...r, loja })), { upsert: true, onConflict: 'loja,codigo_produto,codigo_insumo', progresso, rotulo: 'Insumos por prato' })
+  await apagar('adm_fichas', (q) => q.eq('loja', loja))
+  await enviar('adm_fichas', F, { progresso, rotulo: 'Fichas técnicas' })
+  await apagar('adm_fichas_insumos', (q) => q.eq('loja', loja))
+  await enviar('adm_fichas_insumos', res.map((r) => ({ ...r, loja })), { upsert: true, onConflict: 'loja,codigo_produto,codigo_insumo', progresso, rotulo: 'Insumos por prato' })
 
-  const prods = await selectAll('produtos', (q) => q.eq('loja', loja))
+  const prods = await selectAll('adm_produtos', (q) => q.eq('loja', loja))
   const custos = prods.map((p) => ({ loja, codigo: p.codigo, custo_ficha: lote.has(p.codigo) ? +lote.get(p.codigo).toFixed(4) : null }))
-  await enviar('produtos', custos, { upsert: true, onConflict: 'loja,codigo', progresso, rotulo: 'Custo dos produtos' })
+  await enviar('adm_produtos', custos, { upsert: true, onConflict: 'loja,codigo', progresso, rotulo: 'Custo dos produtos' })
   await sb.rpc('recalcular_custos', { p_loja: loja })
   await registrar('r025', arquivo, loja, F.length, lote.size + ' compostos')
   return `${lote.size} fichas importadas e custo atualizado em ${custos.filter((c) => c.custo_ficha != null).length} produtos.`
@@ -326,8 +326,8 @@ async function importarR016(wb, det, loja, arquivo, progresso, log) {
   const datas = C.map((c) => c.data).sort()
   const ini = det.ini || datas[0], fim = det.fim || datas[datas.length - 1]
   log(`${C.length} compras de ${ini} a ${fim}`)
-  await apagar('compras', (q) => q.eq('loja', loja).gte('data', ini).lte('data', fim))
-  await enviar('compras', C, { progresso, rotulo: 'Compras' })
+  await apagar('adm_compras', (q) => q.eq('loja', loja).gte('data', ini).lte('data', fim))
+  await enviar('adm_compras', C, { progresso, rotulo: 'Compras' })
   await registrar('r016', arquivo, loja, C.length, ini + ' a ' + fim)
   return `${C.length} compras importadas (${ini} a ${fim}). Compras antigas desse período foram substituídas.`
 }
@@ -346,8 +346,8 @@ async function importarContagem(wb, det, lojaPadrao, referencia, arquivo, progre
       categoria_cadastro: txt(r['Categoria (Cadastro)']), arquivo,
     }))
     log(`${c.aba}: ${L.length} itens → loja ${loja}`)
-    await apagar('contagens', (q) => q.eq('loja', loja).eq('referencia', referencia))
-    await enviar('contagens', L, { progresso, rotulo: 'Contagem ' + c.aba })
+    await apagar('adm_contagens', (q) => q.eq('loja', loja).eq('referencia', referencia))
+    await enviar('adm_contagens', L, { progresso, rotulo: 'Contagem ' + c.aba })
     await registrar('contagem', arquivo, loja, L.length, referencia + ' · ' + c.aba)
     msgs.push(`${c.aba}: ${L.length} itens`)
   }
