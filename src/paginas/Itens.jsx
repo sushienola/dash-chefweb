@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from 'recharts'
 import { rpcAll, R, R0, N, P, brCurto, soma, COR_SETOR, COR_GRADE, ordenarSetores } from '../lib'
-import { useDados, Estado, Card, Tabela, Kpi, tooltipStyle } from '../ui'
+import { useDados, Estado, Card, Tabela, Kpi, Aviso, tooltipStyle } from '../ui'
 
 export default function Itens({ loja, ini, fim }) {
   const [filtroCoz, setFiltroCoz] = useState('todos')
@@ -111,6 +111,7 @@ export default function Itens({ loja, ini, fim }) {
               </Estado>
             </Card>
           )}
+          <Aviso>LC, serviço, rolha e taxas ficam escondidos das análises de itens (continuam no faturamento). Ajuste em Produtos e fichas.</Aviso>
           <Card titulo="Ranking de produtos" extra={<span className="muted pequeno">clique num produto para ver o dia a dia</span>}>
             <Tabela onClick={(l) => setSel(l.codigo)} selecionado={sel} colunas={[
               { k: 'codigo', t: 'Cód.', w: 60 },

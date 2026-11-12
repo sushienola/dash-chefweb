@@ -149,7 +149,7 @@ export default function Pratos({ loja, ini, fim }) {
               { k: 'ultimo', t: 'Último ' + (grao === 'mes' ? 'mês' : grao), num: true, f: fmt },
               { k: 'tendencia', t: 'Tendência', num: true, f: (v) => (v == null || !isFinite(v) ? '—' : <span className={'pill ' + (v > 0.05 ? 'up' : v < -0.05 ? 'down' : '')}>{(v > 0 ? '+' : '') + (v * 100).toFixed(0) + '%'}</span>) },
             ]} linhas={calc.lista} />
-            <Aviso>Tendência = média da segunda metade do período comparada com a primeira metade.</Aviso>
+            <Aviso>Tendência = média da segunda metade do período comparada com a primeira metade. LC, serviço, rolha e taxas ficam fora desta lista (ajuste em Produtos e fichas).</Aviso>
           </Card>
         </>
       )}
